@@ -2,6 +2,7 @@ use crate::diesel;
 use crate::diesel::prelude::*;
 
 use actix_web::{web, HttpResponse};
+
 use super::utils::return_state;
 
 use crate::database::establish_connection;

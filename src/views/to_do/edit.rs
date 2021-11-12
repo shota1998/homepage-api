@@ -1,9 +1,10 @@
 use crate::diesel;
 use diesel::prelude::*;
+
 use actix_web::{web, HttpResponse};
 
 use super::utils::return_state;
-use crate::state::read_file;
+
 use crate::database::establish_connection;
 use crate::json_serialization::to_do_item::ToDoItem;
 use crate::schema::to_do;

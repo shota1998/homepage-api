@@ -34,7 +34,7 @@ async fn main() -> std::io::Result<()> {
             }).configure(views::views_factory);
         return app
     })
-        .bind("127.0.0.1:8000")?
-        .run()
-        .await
+    .bind("127.0.0.1:8000")?
+    .run()
+    .await
 }
