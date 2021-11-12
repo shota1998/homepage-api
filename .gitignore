@@ -1,3 +1,7 @@
 /target
+/dev/variables.json
 .env
+*.pem
 .vscode/
+/.github/.secrets
+/src/file/storage/*

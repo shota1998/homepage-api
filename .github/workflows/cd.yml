@@ -1,0 +1,217 @@
+name: cd
+
+on:
+  pull_request:
+    types: [ synchronize ]
+    branches: [ "main"]
+
+env:
+  REGISTRY: ghcr.io
+  CARGO_TERM_COLOR: always
+  DOCKER_FILE_DIR: deploy
+  BIN_FIL_DIR: target/release
+  BIN_FILE_NAME: api_bin
+  TAR_FILE_NAME: artifact.tar
+  PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
+  REMOTE_DOMAIN: api.s2cache.com
+
+jobs:
+  build_docker:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to GitHub Container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PATH_TO_IMAGE_CACHE }}
+        key: docker-${{ github.sha }}
+        restore-keys: docker-
+
+    - name: Push image
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ${{ env.DOCKER_FILE_DIR }}/Dockerfile
+        builder: ${{ steps.buildx.outputs.name }}
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ github.actor }}/homepage/api:latest
+        cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
+        cache-to: type=local,dest=${{ env.PATH_TO_IMAGE_CACHE_NEW}}
+
+    - name: Move cache 
+      run: |
+        rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
+        mv ${{ env.PATH_TO_IMAGE_CACHE_NEW}} ${{ env.PATH_TO_IMAGE_CACHE }}
+
+  build_rust:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Python
+      uses: actions/setup-python@v2
+
+    - name: Restore mtime
+      run: python ./git-restore-mtime.py
+
+    - name: Cache Rust
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-cargo-
+
+    - name: Setup Rust
+      run: |
+        rustup update ${{ matrix.toolchain }} && \
+        rustup default ${{ matrix.toolchain }}
+
+    - name: Build
+      run: cargo build --release --verbose
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my-artifact
+        path: ${{ env.BIN_FIL_DIR }}/${{ env.BIN_FILE_NAME}}
+
+  send_artifact:
+    
+    needs: [build_docker, build_rust]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Create an env file
+      run: |
+        touch .env
+
+        echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
+        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
+
+        echo ALLOWED_ORIGIN_ADMIN = ${{ secrets.ALLOWED_ORIGIN_ADMIN }} >> .env
+        echo ALLOWED_ORIGIN_USER  = ${{ secrets.ALLOWED_ORIGIN_USER }}  >> .env
+
+        echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
+
+        echo AWS_REGION         = ${{ secrets.AWS_REGION }}         >> .env
+
+        echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
+        echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
+        echo AWS_BUCKET         = ${{ secrets.AWS_BUCKET }}         >> .env
+
+        echo AWS_KEY_ID         = ${{ secrets.AWS_KEY_ID }}         >> .env
+        echo AWS_KEY_SECRET     = ${{ secrets.AWS_KEY_SECRET }}     >> .env
+
+        echo FILE_STORAGE_LOCATION = ${{ secrets.FILE_STORAGE_LOCATION }} >> .env
+
+        cat .env
+
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      id: test
+      with:
+        name: my-artifact
+        path: ${{ env.BIN_FIL_DIR }}
+
+    - name: Show artifact
+      run: ls -la  ${{ steps.test.outputs.download-path }}
+
+    - name: Compress artifact
+      run: |
+        cp ${{ env.DOCKER_FILE_DIR }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
+        cp -r migrations ${{ steps.test.outputs.download-path }}
+        cp Cargo.toml    ${{ steps.test.outputs.download-path }}
+        cp nginx.conf    ${{ steps.test.outputs.download-path }}
+        cp .env          ${{ steps.test.outputs.download-path }}
+        cd               ${{ steps.test.outputs.download-path }}
+        tar -cvf ~/${{ env.TAR_FILE_NAME }} .
+
+    - name: Generate ssh private key
+      uses: shimataro/ssh-key-action@v2
+      with: 
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        if_key_exists : replace
+
+    - name: Send artifact
+      run: |
+        scp -o StrictHostKeyChecking=no \
+            -P 22                       \
+            ~/${{ env.TAR_FILE_NAME }}  \
+            ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }}:/home/${{ secrets.REMOTE_USER }}
+
+  run_app:
+
+    needs: send_artifact
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Generate ssh private key
+      uses: shimataro/ssh-key-action@v2
+      with: 
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        if_key_exists : replace
+
+    - name: Decompress artifact
+      run: |
+        ssh                                                      \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
+          "
+            tar -xvf ${{ env.TAR_FILE_NAME }} && rm -f ${{ env.TAR_FILE_NAME }}
+            chmod 755 ./${{ env.BIN_FILE_NAME }}
+            ls -la
+          "
+
+    - name: Run app
+      run: |
+        ssh                                                      \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
+          "
+            docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+            docker-compose -f docker-compose.yml up -d
+            docker-compose exec -d homepage-api bash -c "./${{ env.BIN_FILE_NAME }}"
+          "
+    - name: Health check
+      run: |
+        curl                                                        \
+          -i https://${{ env.REMOTE_DOMAIN }}/api/v1/article/get_all \
+          -o /dev/null -w '%{http_code}\n'                          \
+          -s                                                        \
+        | python3 .github/check_response_code.py
