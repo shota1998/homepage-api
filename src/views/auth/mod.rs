@@ -13,7 +13,7 @@ use super::path::Path;
 /// None
 pub fn auth_factory(app: &mut web::ServiceConfig) {
     // define the path struct
-    let base_path: Path = Path{prefix: String::from("/auth")};
+    let base_path: Path = Path{prefix: String::from("/auth"), backend: true};
     // define the routes for the app
     let _app = app.route(&base_path.define(String::from("/login")),
                     web::post().to(login::login))

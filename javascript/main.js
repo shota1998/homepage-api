@@ -1,6 +1,8 @@
 // ???
 if (localStorage.getItem("user-token") == null) {
   window.location.replace(document.location.origin + "/login");
+} else {
+  getItems();
 }
 
 /**
@@ -8,7 +10,7 @@ if (localStorage.getItem("user-token") == null) {
  * 
  * @param {Array} items - list of to do items.
  * @param {String} processType - the type of process that the button belonging to the to do item.
- * @param {String} elementId - the id of the HTML element that the items will be inseted.
+ * @param {String} elementId - the id of the HTML element that the items will be inserted.
  * @param {editItem | deleteItem} processFunction - function that is fired once the button is clicked.
  */
 function renderItems(items, processType, 
@@ -55,7 +57,7 @@ function apiCall(url, method) {
   xhr.addEventListener('readystatechange', function() {
     if (this.readyState === this.DONE) {
       if (this.status === 401) {
-        window.location.replace(document.location.origin + "/login/");
+        window.location.replace(document.location.origin + "/login");
       }
       renderItems(JSON.parse(this.responseText)["pending_items"], "edit", "pendingItems", editItem);
       renderItems(JSON.parse(this.responseText)["done_items"],  "delete", "doneItems", deleteItem);
@@ -64,7 +66,7 @@ function apiCall(url, method) {
     }
   });
 
-  xhr.open(method, url);
+  xhr.open(method,"api/v1" + url);
   xhr.setRequestHeader('content-type', 'application/json');
   xhr.setRequestHeader('user-token', localStorage.getItem("user-token"));
   return xhr;
@@ -105,8 +107,6 @@ function getItems() {
   let call = apiCall("/item/get", 'GET');
   call.send()
 }
-
-getItems();
 
 document.getElementById("create-button")
         .addEventListener("click", createItem);

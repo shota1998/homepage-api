@@ -1,10 +1,11 @@
-use std::vec::Vec;
-
 use crate::diesel;
 use diesel::prelude::*;
 
+use std::vec::Vec;
+
 use crate::to_do::to_do_factory;
 use crate::json_serialization::to_do_items::ToDoItems;
+
 use crate::database::establish_connection;
 use crate::models::item::item::Item;
 use crate::schema::to_do;
@@ -16,10 +17,11 @@ use crate::schema::to_do;
 /// 
 /// # Returns
 /// * (ToDoItems): to do items sorted into Done and Pending with count numbers.
-pub fn return_state() -> ToDoItems {
+pub fn return_state(user_id: &i32) -> ToDoItems {
   let connection = establish_connection();
   let items = to_do::table
         .order(to_do::columns::id.asc())
+        .filter(to_do::columns::user_id.eq(&user_id))
         .load::<Item>(&connection)
         .unwrap();
 

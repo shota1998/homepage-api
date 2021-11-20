@@ -7,7 +7,7 @@ loginButton.addEventListener("click", () => {
   // Prepare xhr.
   let xhr = new XMLHttpRequest();
   
-  xhr.open("POST", "/auth/login", true);
+  xhr.open("POST", "api/v1/auth/login", true);
   xhr.setRequestHeader("Content-Type", "application/json");
 
   // Check HttpResponse.
