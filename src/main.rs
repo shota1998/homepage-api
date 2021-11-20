@@ -12,6 +12,7 @@ mod state;
 mod to_do;
 mod json_serialization;
 mod views;
+mod auth;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -21,7 +22,7 @@ async fn main() -> std::io::Result<()> {
                     // srv => routing
                     // req => service request
                 if *&req.path().contains("/item/") {
-                    match views::token::process_token(&req) {
+                    match auth::process_token(&req) {
                         Ok(_token) => println!("the token is passable"),
                         Err(message) => println!("token error: {}", message)
                     }
