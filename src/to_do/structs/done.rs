@@ -1,8 +1,4 @@
 use super::base::Base;
-use super::traits::get::Get;
-use super::traits::delete::Delete;
-use super::traits::edit::Edit;
-
 
 /// This struct defines a to do item for a done to do item.
 ///
@@ -27,7 +23,3 @@ impl Done {
         return Done{super_struct: base}
     }
 }
-
-impl Get for Done {}
-impl Delete for Done {}
-impl Edit for Done {}

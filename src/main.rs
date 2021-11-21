@@ -10,9 +10,7 @@ use env_logger;
 
 mod schema;
 mod database;
-mod processes;
 mod models;
-mod state;
 mod to_do;
 mod json_serialization;
 mod views;
