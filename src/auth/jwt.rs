@@ -65,8 +65,8 @@ impl JwtToken {
     }
   }
 
-  pub fn decode_from_request(requset: HttpRequest) -> Result<JwtToken, &'static str> {
-    match requset.headers().get("user-token") {
+  pub fn decode_from_request(request: HttpRequest) -> Result<JwtToken, &'static str> {
+    match request.headers().get("user-token") {
       Some(token) => JwtToken::decode(String::from(token.to_str().unwrap())),
       None => Err("there is no token")
     }
@@ -91,7 +91,7 @@ mod jwt_tests {
     let encoded_token: String = String::from("test");
 
     match JwtToken::decode(encoded_token) {
-      Err(message) => assert_eq!("Could not decode", message),
+      Err(message) => assert_eq!("Could not decode.", message),
       _            => panic!("Incorrect token should not be able to be encoded")
     }
   }
@@ -125,7 +125,7 @@ mod jwt_tests {
     let out_come = JwtToken::decode_from_request(request);
 
     match out_come {
-      Err(message) => assert_eq!("Could not decode", message),
+      Err(message) => assert_eq!("Could not decode.", message),
       _            => panic!("should be an error with a fake token")
     }
   }
