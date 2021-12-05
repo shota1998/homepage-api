@@ -5,28 +5,28 @@ services:
     build: ../
     restart: always
     ports:
-      - '8000:8000'
+      - 8000:8000
     expose:
       - 8000
-  
+
   nginx:
     container_name: 'nginx-rust'
     image: 'nginx:latest'
     ports:
-      - '80:80'
+      - 80:80
     links:
-      - rust_app
+      - 'rust_app'
     depends_on:
-      - rust_app
+      - 'rust_app'
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-  
+      - './nginx/nginx.conf:/etc/nginx/nginx.conf'
+
   postgres:
     container_name: 'to-do-postgres-production'
     image: 'postgres:11.2'
     restart: always
     ports:
-      - '5432:5432'
+      - 5432:5432
     environment:
       - 'POSTGRES_USER=username'
       - 'POSTGRES_DB=to_do'
