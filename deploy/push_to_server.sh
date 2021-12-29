@@ -9,7 +9,7 @@ cd $SCRIPTPATH
 # ***********************
 # Copy local file to EC2.
 # ***********************
-echo -e "\n----- Start  : Copy local file. -----\n"
+echo -e "\n----- Start : Copy local file. -----\n"
 scp -i "./rust_app.pem" \
     ./docker-compose.yml ${EC2_ADDRESS_WITH_USER}:/home/ec2-user/docker-compose.yml
 scp -i "./rust_app.pem" \
@@ -18,8 +18,7 @@ scp -i "./rust_app.pem" \
 # ***********************
 # Execute command at EC2.
 # ***********************
-
-echo -e  "\n----- Start  : Execute command at EC2. -----\n"
+echo -e  "\n----- Start : Execute command at EC2. -----\n"
 # ssh -i "./rust_app.pem"  -t  ec2-user@54.178.7.242 << EOF
   
 #   docker-compose up -d
@@ -37,7 +36,7 @@ ssh -i "./rust_app.pem" -t ${EC2_ADDRESS_WITH_USER} << EOF
   docker-compose up -d
   docker container exec \
     -t rust_app bash \
-    -c "echo DATABASE_URL=postgres://username:password@todo.ccuf26pumepg.ap-northeast-1.rds.amazonaws.com/to_do > .env"
+    -c "echo DATABASE_URL=postgres://username:password@todo.ccuf26pumepg.ap-northeast-1.rds.amazonaws.com/postgres > .env"
   docker container exec \
     -t rust_app diesel migration run
 
