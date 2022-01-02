@@ -5,6 +5,6 @@
 # I recommend yuo not to hard code in this script.
 
 aws rds modify-db-instance \
-    --db-instance-identifier $MY_AWS_DB_INSTANCE_IDENTIFIER \
+    --db-instance-identifier $MY_AWS_RDS_DB_INSTANCE_IDENTIFIER \
     --apply-immediately \
     --enable-iam-database-authentication
