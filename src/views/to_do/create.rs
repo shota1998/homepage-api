@@ -21,7 +21,7 @@ use super::utils::return_state;
 /// * (impl Responder): message to be sent back to the user. 
 pub async fn create(req: HttpRequest) -> impl Responder {
   // Extract and clone "title" info from http request.
-  let title: String = req.match_info().get("title").unwrap().to_string();
+  let title:     String = req.match_info().get("title").unwrap().to_string();
   let title_ref: String = title.clone();
 
   // Extract and decode user token.

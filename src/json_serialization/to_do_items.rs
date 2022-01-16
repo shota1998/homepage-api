@@ -11,9 +11,9 @@ use crate::to_do::structs::base::Base;
 ///
 /// # Parameters
 /// * pending_items (Vec<Base>): vector containing the statuses and titles of pending items
-/// * done_items (Vec<Base>): vector containing the statuses and titles of the done items
-/// * pending_item_count (i8): the number of pending items
-/// * done_item_count (i8): the number of done items
+/// * done_items (Vec<Base>):    vector containing the statuses and titles of the done items
+/// * pending_item_count (i8):   the number of pending items
+/// * done_item_count (i8):      the number of done items
 #[derive(Serialize)]
 pub struct ToDoItems {
   pub pending_items: Vec<Base>,
@@ -23,7 +23,6 @@ pub struct ToDoItems {
 }
 
 impl ToDoItems {
-
   /// This function constructs the ToDoItems struct.
   ///
   /// # Arguments
@@ -33,7 +32,7 @@ impl ToDoItems {
   /// * (ToDoItems): package struct
   pub fn new(input_items: Vec<ItemTypes>) -> ToDoItems {
     let mut pending_array_buffer = Vec::new();
-    let mut done_array_buffer = Vec::new();
+    let mut done_array_buffer    = Vec::new();
 
     for item in input_items {
       match item {
@@ -44,22 +43,21 @@ impl ToDoItems {
       }
     }
 
-    let done_count: i8 = done_array_buffer.len() as i8;
+    let done_count: i8    = done_array_buffer.len()    as i8;
     let pending_count: i8 = pending_array_buffer.len() as i8;
 
     return ToDoItems {
-      pending_items: pending_array_buffer,
-      done_items: done_array_buffer,
+      pending_items:      pending_array_buffer,
+      done_items:         done_array_buffer,
       pending_item_count: pending_count,
-      done_item_count: done_count
+      done_item_count:    done_count
     }
   }
 }
 
 impl Responder for ToDoItems {
-  type Error = Error;
+  type Error  = Error;
   type Future = Ready<Result<HttpResponse, Error>>;
-  
   /// This function gets fired when the struct is being returned in an actix view.
   ///
   /// # Arguments

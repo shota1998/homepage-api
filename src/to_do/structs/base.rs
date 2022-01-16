@@ -12,7 +12,6 @@ pub struct Base {
 }
 
 impl Base {
-
     /// The constructor for the Base struct.
     ///
     /// # Arguments

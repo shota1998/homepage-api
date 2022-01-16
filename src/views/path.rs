@@ -8,7 +8,6 @@ pub struct Path {
 }
 
 impl Path {
-
     /// This function defines a full path based on the struct's prefix and the String passed in.
     ///
     /// # Arguments
