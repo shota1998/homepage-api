@@ -3,7 +3,6 @@ mod login;
 mod logout;
 use super::path::Path;
 
-
 /// This function adds the auth views to the web server.
 ///
 /// # Arguments
@@ -17,6 +16,6 @@ pub fn auth_factory(app: &mut web::ServiceConfig) {
     // define the routes for the app
     let _app = app.route(&base_path.define(String::from("/login")),
                     web::post().to(login::login))
-                 .route(&base_path.define(String::from("/logout")),
+                  .route(&base_path.define(String::from("/logout")),
                     web::post().to(logout::logout));
 }

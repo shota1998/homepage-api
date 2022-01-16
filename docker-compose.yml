@@ -9,6 +9,6 @@ services:
     ports:
       - '5432:5432'
     environment:
-      - 'POSTGRES_USER=username'
-      - 'POSTGRES_DB=to_do'
-      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_USER=hoge'
+      - 'POSTGRES_DB=hoge'
+      - 'POSTGRES_PASSWORD=hoge'

@@ -18,8 +18,8 @@ use crate::schema::users;
 pub async fn create(new_user: web::Json<NewUserSchema>) -> HttpResponse {
   let connection = establish_connection();
   // Prepare data which will be stored to DB.
-  let name: String = new_user.name.clone();
-  let email: String = new_user.email.clone();
+  let name:     String = new_user.name.clone();
+  let email:    String = new_user.email.clone();
   let password: String = new_user.password.clone();
   let new_user = NewUser::new(name, email, password);
   // Store data to DB.

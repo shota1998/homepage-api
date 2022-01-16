@@ -7,7 +7,6 @@ mod app;
 mod users;
 // pub mod token;
 
-
 /// This function combines the views from other view modules.
 ///
 /// # Arguments
