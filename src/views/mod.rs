@@ -5,6 +5,7 @@ mod auth;
 mod to_do;
 mod app;
 mod users;
+mod article;
 // pub mod token;
 
 /// This function combines the views from other view modules.
@@ -19,4 +20,5 @@ pub fn views_factory(app: &mut web::ServiceConfig) {
     to_do::item_factory(app);
     app::app_factory(app);
     users::user_factory(app);
+    article::article_factory(app);
 }
