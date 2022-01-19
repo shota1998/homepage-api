@@ -7,7 +7,7 @@ mod get;
 // mod utils;
 use super::path::Path;
 
-pub fn article_factory(app: &mut web::ServiceConfig) {
+pub fn routes_factory(app: &mut web::ServiceConfig) {
   let base_path: Path = Path{prefix: String::from("/article"), backend: true};
   
   // app.route(&base_path.define(String::from("/create/{title}")),
