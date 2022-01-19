@@ -13,7 +13,7 @@ mod database;
 mod models;
 mod to_do;
 mod json_serialization;
-mod views;
+mod routes;
 mod auth;
 
 #[actix_rt::main]
@@ -69,7 +69,7 @@ async fn main() -> std::io::Result<()> {
                     Ok(result)
                 }
                 // end_result
-            }).configure(views::views_factory);
+            }).configure(routes::routes_factory);
         return app
     })
     // .bind("127.0.0.1:8000")?
