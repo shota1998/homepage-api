@@ -10,7 +10,7 @@ use super::path::Path;
 pub fn routes_factory(app: &mut web::ServiceConfig) {
   let base_path: Path = Path{prefix: String::from("/article"), backend: true};
   
-  // app.route(&base_path.define(String::from("/create/{title}")),
+  // app.route(&base_path.define(String::from("/create")),
   //   web::post().to(create::create));
   app.route(&base_path.define(String::from("/get")),
     web::get().to(get::get));

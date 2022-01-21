@@ -7,6 +7,7 @@ use futures::future::{ok, Either};
 
 use log;
 use env_logger;
+use std::env;
 
 mod schema;
 mod database;
@@ -19,8 +20,11 @@ mod auth;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
 
+    // Set environmental valuable.
+    env::set_var("RUST_LOG", "info");
     // Start logging.
     env_logger::init();
+
     // Create http server.
     HttpServer::new(|| {
         let app = App::new()
