@@ -1,7 +1,7 @@
 use actix_web::{Responder, Error, HttpResponse, HttpRequest};
 use serde::Serialize;
 use futures::future::{ready, Ready};
-
+use log;
 // use super::utils::return_state;
 use crate::auth::jwt::JwtToken;
 
