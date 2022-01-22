@@ -28,20 +28,20 @@
 //   let token: JwtToken = JwtToken::decode_from_request(req).unwrap();
 
 //   // Check if the newly created item is already exist. 
-//   let connection = establish_connection();
-//   let items = to_do::table
-//         .filter(to_do::columns::title.eq(title_ref.as_str()))
-//         .filter(to_do::columns::user_id.eq(&token.user_id))
-//         .order(to_do::columns::id.asc())
-//         .load::<Item>(&connection)
-//         .unwrap();
+//   // let connection = establish_connection();
+//   // let items = to_do::table
+//   //       .filter(to_do::columns::title.eq(title_ref.as_str()))
+//   //       .filter(to_do::columns::user_id.eq(&token.user_id))
+//   //       .order(to_do::columns::id.asc())
+//   //       .load::<Item>(&connection)
+//   //       .unwrap();
 
 //   // Store the created item.
-//   if items.len() == 0 {
-//     let new_post = NewItem::new(title, token.user_id.clone());
-//     let _ = diesel::insert_into(to_do::table).values(&new_post)
-//                                              .execute(&connection);
-//   }
+//   // if items.len() == 0 {
+//   //   let new_post = NewItem::new(title, token.user_id.clone());
+//   //   let _ = diesel::insert_into(to_do::table).values(&new_post)
+//   //                                            .execute(&connection);
+//   // }
   
 //   // Return Items which will be shown in the view.
 //   return return_state(&token.user_id)

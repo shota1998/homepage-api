@@ -4,7 +4,7 @@ use actix_web::web;
 mod get;
 // mod edit;
 // mod delete;
-// mod utils;
+mod utils;
 use super::path::Path;
 
 pub fn routes_factory(app: &mut web::ServiceConfig) {
