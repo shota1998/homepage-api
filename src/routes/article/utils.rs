@@ -11,12 +11,7 @@ pub fn return_state() -> Articles {
   return Articles::new();
 }
 
-// pub fn return_articles_by_id(article_ids: &i32) -> Articles {
-//   // SQL
-//   return Articles::new();
-// }
-
-// pub fn return_articles_with_limit(article_limit: &i32) -> Articles {
+// pub fn return_articles_by_id(article_ids: &i32 = null, article_limit: &i32 = null) -> Articles {
 //   // SQL
 //   return Articles::new();
 // }

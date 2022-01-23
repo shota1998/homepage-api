@@ -1,6 +1,9 @@
-use actix_web::{Responder, Error, HttpResponse, HttpRequest};
+use std::vec::Vec;
 use serde::Serialize;
 use futures::future::{ready, Ready};
+
+use actix_web::{Responder, Error, HttpResponse, HttpRequest};
+
 use crate::json_serialization::article::Article;
 
 /// This struct packages the raw struct fields to package items for JSON serialization.
@@ -12,12 +15,7 @@ use crate::json_serialization::article::Article;
 /// * done_item_count (i8):      the number of done items
 #[derive(Serialize)]
 pub struct Articles {
-  // pub articles: Vec<Article>,
-  pub article: Article,
-  // pub title: String,
-  // pub date: String,
-  // pub genre: String
-  // pub content: String
+  pub articles: Vec<Article>,
 }
 
 impl Articles {
@@ -29,13 +27,19 @@ impl Articles {
   /// # Returns
   /// * (Articles): package struct
   pub fn new() -> Articles {
-    // let mut articles = Vec::new();
-    let article: Article = Article::new();
+    let mut articles = Vec::new();
+    let title:   String = String::from("sample title");
+    let content: String = String::from("sample content");
+    let article: Article = Article::new(title, content);
+    articles.push(article);
+
+    let title2:   String = String::from("sample title2");
+    let content2: String = String::from("sample content2");
+    let article2: Article = Article::new(title2, content2);
+    articles.push(article2);
 
     return Articles {
-      // title:   String::from("sample_title"), 
-      // content: String::from("sample_content"), 
-      article: article
+      articles: articles
     }
   }
 }
