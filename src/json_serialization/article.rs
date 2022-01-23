@@ -18,17 +18,10 @@ impl Article {
   ///
   /// # Returns
   /// * (Articles): package struct
-  pub fn new() -> Article {
+  pub fn new(title: String, content: String) -> Article {
     return Article {
-      title:   String::from("sample_title"), 
-      content: String::from("sample_content"), 
+      title:   title,
+      content: content
     }
   }
-
-  // pub fn new(title: String, content: String) -> Article {
-  //   return Article {
-  //     title:   title, 
-  //     content: content, 
-  //   }
-  // }
 }
