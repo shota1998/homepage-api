@@ -11,11 +11,6 @@ use super::utils::return_state;
 pub async fn get(req: HttpRequest) -> impl Responder {
   // let token: JwtToken = JwtToken::decode_from_request(req).unwrap();
 
-  // return Article{
-  //   title:  String::from("sample_title"), 
-  //   author: String::from("sample_author")
-  // };
-
   // return return_state(&token.user_id);
   return return_state();
 }
