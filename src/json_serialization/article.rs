@@ -7,7 +7,7 @@ pub struct Article {
   pub title: String,
   // pub date: String,
   // pub genre: String
-  pub content: String
+  pub body: String
 }
 
 impl Article {
@@ -18,10 +18,10 @@ impl Article {
   ///
   /// # Returns
   /// * (Articles): package struct
-  pub fn new(title: String, content: String) -> Article {
+  pub fn new(title: String, body: String) -> Article {
     return Article {
       title:   title,
-      content: content
+      body: body
     }
   }
 }
