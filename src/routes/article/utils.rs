@@ -24,7 +24,7 @@ pub fn return_state() -> Articles {
 
   // Convert model to json serializable structure.
   for article_model in article_models {
-    let article = Article::new(article_model.title, article_model.body);
+    let article = Article::new(article_model.id, article_model.title, article_model.body);
     article_buffer.push(article);
   }
 

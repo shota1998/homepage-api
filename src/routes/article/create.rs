@@ -7,8 +7,8 @@ use actix_web::{web, HttpResponse};
 
 use crate::database::establish_connection;
 // use crate::models::article::article::Article;
-use crate::json_serialization::article::Article;
-use crate::models::article::new_article::NewArticle;
+use crate::json_serialization::new_article::NewArticle;
+use crate::models::article::new_article::NewArticle as Model_NewArticle;
 use crate::schema::articles;
 // use crate::auth::jwt::JwtToken;
 
@@ -21,11 +21,11 @@ use crate::schema::articles;
 /// 
 /// # Returns
 /// * (impl Responder): message to be sent back to the user. 
-pub async fn create(new_article: web::Json<Article>) -> HttpResponse {
+pub async fn create(new_article: web::Json<NewArticle>) -> HttpResponse {
   let connection    = establish_connection();
-  let title: String = new_article.title.clone();
-  let body : String = new_article.body.clone();
-  let new_article = NewArticle::new(title, body);
+  let title : String = new_article.title.clone();
+  let body  : String = new_article.body.clone();
+  let new_article   = Model_NewArticle::new(title, body);
 
   let insert_result = diesel::insert_into(articles::table)
                               .values(&new_article)
