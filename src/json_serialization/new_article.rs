@@ -1,17 +1,14 @@
 use serde::Deserialize;
-use serde::Serialize;
 
 #[derive(Deserialize)]
-#[derive(Serialize)]
-pub struct Article {
-  pub id: i32,
+pub struct NewArticle {
   pub title: String,
   // pub date: String,
   // pub genre: String
   pub body: String
 }
 
-impl Article {
+impl NewArticle {
   /// This function constructs the Articles struct.
   ///
   /// # Arguments
@@ -19,9 +16,8 @@ impl Article {
   ///
   /// # Returns
   /// * (Articles): package struct
-  pub fn new(id: i32, title: String, body: String) -> Article {
-    return Article {
-      id    : id,
+  pub fn new(id:i32, title: String, body: String) -> NewArticle {
+    return NewArticle {
       title : title,
       body  : body
     }
