@@ -30,7 +30,7 @@ pub async fn edit(article: web::Json<Article>, req: HttpRequest) -> HttpResponse
   // Edit item data of DB. Change the state to "done".
   let connection = establish_connection();
   let filter_results = articles::table
-                .filter(articles::columns::id.eq(&id_ref));
+                      .filter(articles::columns::id.eq(&id_ref));
 
   let update_result = diesel::update(filter_results)
                       .set((
