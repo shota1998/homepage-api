@@ -1,11 +1,10 @@
 use actix_web::web;
-
+use super::path::Path;
 mod create;
 mod get;
 mod edit;
-// mod delete;
+mod delete;
 mod utils;
-use super::path::Path;
 
 pub fn routes_factory(app: &mut web::ServiceConfig) {
   let base_path: Path = Path{prefix: String::from("/article"), backend: true};
@@ -16,6 +15,6 @@ pub fn routes_factory(app: &mut web::ServiceConfig) {
     web::get().to(get::get));
   app.route(&base_path.define(String::from("/edit")),
     web::put().to(edit::edit));
-  // app.route(&base_path.define(String::from("/delete")),
-  //   web::post().to(delete::delete));
+  app.route(&base_path.define(String::from("/delete")),
+    web::post().to(delete::delete));
 }

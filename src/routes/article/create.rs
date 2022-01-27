@@ -1,5 +1,4 @@
 use crate::diesel;
-
 use diesel::prelude::*;
 use actix_web::{web, HttpResponse};
 // use actix_web::HttpRequest;
