@@ -1,12 +1,9 @@
 use crate::diesel;
 use crate::diesel::prelude::*;
-use actix_web::{web, HttpResponse, HttpRequest};
+use actix_web::{web, HttpResponse };
 use serde::{Deserialize, Serialize};
 
-// use super::utils::return_state;
 use crate::database::establish_connection;
-use crate::json_serialization::article::Article;
-// use crate::auth::jwt::JwtToken;
 use crate::models::article::article::Article as Model_Article;
 use crate::schema::articles;
 
@@ -28,10 +25,6 @@ pub struct ResponseBody {
 /// # Returns
 /// (HttpResponse): response body to be passed to the viewer.
 pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
-  // Extract and decode user token.
-  // let token: JwtToken = JwtToken::decode_from_request(req).unwrap();
-
-  // Delete item witch matches "title" and "user id" from DB.
   let connection = establish_connection();
   let items = articles::table
               .filter(articles::columns::id.eq(&request_body.id))
@@ -41,11 +34,9 @@ pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   let delete_result = diesel::delete(&items[0])
                       .execute(&connection);
 
-  // Return items json which will be used to check deleted or not.
-  // return HttpResponse::Ok().json(return_state(&token.user_id))
   match  delete_result {
     Ok(_) => HttpResponse::Ok().json(ResponseBody {
-      message: String::from("Delete succeded.")
+        message: String::from("Delete succeded.")
       }),
     Err(_) => HttpResponse::Conflict().await.unwrap()
   } 

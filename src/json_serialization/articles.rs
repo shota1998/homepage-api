@@ -1,7 +1,6 @@
 use std::vec::Vec;
 use serde::Serialize;
 use futures::future::{ready, Ready};
-
 use actix_web::{Responder, Error, HttpResponse, HttpRequest};
 
 use crate::json_serialization::article::Article;
