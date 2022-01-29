@@ -1,33 +1,45 @@
 #[macro_use] extern crate diesel;
-extern crate dotenv;
 
-use actix_web::{App, HttpServer, HttpResponse};
+use actix_web::{App, HttpServer, HttpResponse, http};
 use actix_service::Service;
+use actix_cors::Cors;
 use futures::future::{ok, Either};
 
 use log;
 use env_logger;
 use std::env;
-
 mod schema;
 mod database;
 mod models;
-mod to_do;
 mod json_serialization;
 mod routes;
 mod auth;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-
     // Set environmental valuable.
     env::set_var("RUST_LOG", "info");
     // Start logging.
     env_logger::init();
-
     // Create http server.
     HttpServer::new(|| {
+        let cors = Cors::default()
+                    .allowed_origin("http://localhost:3000")
+                    // .allowed_origin_fn(|origin, _req_head| {
+                    //     origin.as_bytes().ends_with(b"localhost")
+                    // })
+                    .allowed_methods(vec!["GET", "POST"])
+                    .allowed_headers(vec![
+                        http::header::AUTHORIZATION,
+                        http::header::ACCEPT,
+                        http::header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                        http::header::CONTENT_TYPE
+                    ])
+                    .max_age(3600);
+
         let app = App::new()
+            // .wrap(cors)
+            .wrap(cors)
             .wrap_fn(|req, srv| {
                 // srv => routing
                 // req => service request
@@ -72,8 +84,8 @@ async fn main() -> std::io::Result<()> {
                     log::info!("{} -> {}", request_url, &result.status());
                     Ok(result)
                 }
-                // end_result
-            }).configure(routes::routes_factory);
+            })
+            .configure(routes::routes_factory);
         return app
     })
     // .bind("127.0.0.1:8000")?
