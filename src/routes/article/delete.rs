@@ -34,6 +34,8 @@ pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   let delete_result = diesel::delete(&items[0])
                       .execute(&connection);
 
+  // todo : delete tmp article.
+
   match  delete_result {
     Ok(_) => HttpResponse::Ok().json(ResponseBody {
         message: String::from("Delete succeded.")
