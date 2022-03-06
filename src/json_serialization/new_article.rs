@@ -16,7 +16,7 @@ impl NewArticle {
   ///
   /// # Returns
   /// * (Articles): package struct
-  pub fn new(id:i32, title: String, body: String) -> NewArticle {
+  pub fn new(_id:i32, title: String, body: String) -> NewArticle {
     return NewArticle {
       title : title,
       body  : body
