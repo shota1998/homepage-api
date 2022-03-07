@@ -1,9 +1,8 @@
-use crate::schema::articles;
+use crate::schema::tmp_articles;
 
 #[derive(Queryable, Identifiable, Associations)]
-#[table_name="articles"]
-pub struct Article {
-  pub id    : i32,
+#[table_name="tmp_articles"]
+pub struct TmpArticle {
   pub title : String,
   pub body  : String
 }

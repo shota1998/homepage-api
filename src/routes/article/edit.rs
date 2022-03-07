@@ -20,6 +20,9 @@ pub async fn edit(article: web::Json<Article>) -> HttpResponse {
 
   // Edit item data of DB. Change the state to "done".
   let connection = establish_connection();
+
+  // todo : Store tmp article.
+  // todo : Copy tmp article to article.
   let filter_results = articles::table
                       .filter(articles::columns::id.eq(&id_ref));
 
