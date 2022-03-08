@@ -4,18 +4,19 @@ use diesel::prelude::*;
 use serde::{Deserialize};
 
 use crate::database::establish_connection;
-use crate::schema::{articles, tmp_articles};
+use crate::schema::{articles, editing_articles};
 use crate::json_serialization::articles::Articles;
 use crate::json_serialization::article::Article;
-use crate::models::article::article::Article    as Model_Article;
-use crate::models::article::article::TmpArticle as Model_Tmp_Article;
+use crate::json_serialization::editing_article::EditingArticle;
+use crate::models::article::article::Article                as Model_Article;
+use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
 
 #[derive(Deserialize)]
 pub struct RequestBody {
     id: i32,
 }
 
-/// Get all saved articles.
+/// Get all articles.
 ///
 /// # Arguments
 /// * request_body web::Json<RequestBody>: 
@@ -43,7 +44,7 @@ pub async fn get_all_articles() -> impl Responder {
   return Articles::new(article_buffer);
 }
 
-/// Get a saved article.
+/// Get an article.
 /// Extract by id.
 ///
 /// # Arguments
@@ -54,10 +55,10 @@ pub async fn get_all_articles() -> impl Responder {
 pub async fn get_article_by_id(request_body: web::Json<RequestBody>) -> impl Responder {
   let connection = establish_connection();
   let article_model = articles::table
-        .filter(articles::columns::id.eq(&request_body.id))
-        .order(articles::columns::id.asc())
-        .load::<Model_Article>(&connection)
-        .unwrap();
+                               .filter(articles::columns::id.eq(&request_body.id))
+                               .order(articles::columns::id.asc())
+                               .load::<Model_Article>(&connection)
+                               .unwrap();
 
   let article = Article::new(article_model[0].id.clone(),
                              article_model[0].title.clone(),
@@ -66,7 +67,7 @@ pub async fn get_article_by_id(request_body: web::Json<RequestBody>) -> impl Res
   return article;
 }
 
-/// Get a temporarily saved article for editing.
+/// Get a editing article.
 /// Extract by id.
 ///
 /// # Arguments
@@ -74,19 +75,19 @@ pub async fn get_article_by_id(request_body: web::Json<RequestBody>) -> impl Res
 ///
 /// # Returns
 /// * (Responder): A an article.
-pub async fn get_tmp_article_by_id(request_body: web::Json<RequestBody>) -> impl Responder {
+pub async fn get_editing_article_by_id(request_body: web::Json<RequestBody>) -> impl Responder {
   let connection = establish_connection();
   
-  // todo : .filter(tmp_articles::columns::article_id.eq(&request_body.id))
-  let article_model = tmp_articles::table
-        .filter(tmp_articles::columns::id.eq(&request_body.id))
-        .order(tmp_articles::columns::id.asc())
-        .load::<Model_Tmp_Article>(&connection)
-        .unwrap();
+  let editing_articles_model = editing_articles::table
+                                                .filter(editing_articles::columns::article_id.eq(&request_body.id))
+                                                .order(editing_articles::columns::id.asc())
+                                                .load::<Model_EditingArticle>(&connection)
+                                                .unwrap();
 
-  let article = Article::new(article_model[0].id.clone(),
-                             article_model[0].title.clone(),
-                             article_model[0].body.clone());
+  let editing_article = EditingArticle::new(editing_articles_model[0].id.clone(),
+                                            editing_articles_model[0].article_id.clone(),
+                                            editing_articles_model[0].title.clone(),
+                                            editing_articles_model[0].body.clone());
 
-  return article;
+  return editing_article;
 }
