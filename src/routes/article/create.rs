@@ -23,24 +23,28 @@ pub async fn create(new_article: web::Json<NewArticle>) -> HttpResponse {
   let title : String = new_article.title.clone();
   let body  : String = new_article.body.clone();
 
-  let new_article   = Model_NewArticle::new(title.clone(), body.clone());
+  // Creat an article.
+  let new_article   = Model_NewArticle::new(title.clone(), 
+                                            body.clone());
+
   let insert_result = diesel::insert_into(articles::table)
                              .values(&new_article)
                              .get_result::<Model_Article>(&connection);
 
-  // todo : set insert_result::id on article_id;
-  // todo : add article_id to tmp_article table;
-  // todo : add table "editing article", then use it instead of "editing article" which will be used later;
-  let editing_article       = Model_NewEditingArticle::new(insert_result.unwrap().id.clone(), title.clone(), body.clone());
-  let insert_result_editing = diesel::insert_into(editing_articles::table)
-                                     .values(&editing_article)
-                                     .execute(&connection);
-  
-  // Storing was succeeded or not.
+  // Storing data into DB was succeeded or not.
   match insert_result {
     Ok(_)  => HttpResponse::Created().await.unwrap(),
     Err(_) => HttpResponse::Conflict().await.unwrap()
   };
+  
+  // Create article for edit.
+  let editing_article       = Model_NewEditingArticle::new(insert_result.unwrap().id, 
+                                                           title.clone(), 
+                                                           body.clone());
+                                                           
+  let insert_result_editing = diesel::insert_into(editing_articles::table)
+                                     .values(&editing_article)
+                                     .execute(&connection);
 
   match insert_result_editing {
     Ok(_)  => HttpResponse::Created().await.unwrap(),

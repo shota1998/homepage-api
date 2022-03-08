@@ -2,38 +2,54 @@ use crate::diesel;
 use diesel::prelude::*;
 use actix_web::{web, HttpResponse };
 use crate::database::establish_connection;
-use crate::json_serialization::article::Article;
+use crate::json_serialization::editing_article::EditingArticle;
 use crate::schema::articles;
+use crate::schema::editing_articles;
 
-/// This is function edits a to do item's status.
+/// Save an edited article to editing_article tanble. 
+/// Reflect it to an article in article table.
 /// 
 /// # Arguments
-/// * articles (web::Json<ToDoItem>): This serialize the JSON body via the ToDoItem struct
+/// * editing_article (web::Json<Article>): This serialize the JSON body.
 /// 
 ///  # Returns
 ///  (HttpResponse): Response body.
-pub async fn edit(article: web::Json<Article>) -> HttpResponse {
-  // Extract info from json.
-  let id_ref:    &i32    = &article.id.clone();
-  let title_ref: &String = &article.title.clone();
-  let body_ref:  &String = &article.body.clone();
-
-  // Edit item data of DB. Change the state to "done".
+pub async fn edit(editing_article: web::Json<EditingArticle>) -> HttpResponse {
   let connection = establish_connection();
 
-  // todo : Store tmp article.
-  // todo : Copy tmp article to article.
-  let filter_results = articles::table
-                      .filter(articles::columns::id.eq(&id_ref));
+  // Extract info from json.
+  let id_ref:    &i32    = &editing_article.id.clone();
+  let title_ref: &String = &editing_article.title.clone();
+  let body_ref:  &String = &editing_article.body.clone();
 
-  let update_result = diesel::update(filter_results)
-                      .set((
-                        articles::columns::title.eq(&title_ref),
-                        articles::columns::body.eq(&body_ref)
+  // Store edited article to the editing_article table.
+  let filter_results = articles::table
+                       .filter(articles::columns::id.eq(&id_ref));
+
+  let update_result  = diesel::update(filter_results)
+                       .set((
+                         articles::columns::title.eq(&title_ref),
+                         articles::columns::body.eq(&body_ref)
                        ))
-                      .execute(&connection);
-                 
+                       .execute(&connection);
+
   match  update_result {
+    Ok(_) => HttpResponse::Created().await.unwrap(),
+    Err(_) => HttpResponse::Conflict().await.unwrap()
+  };
+
+  // Reflect edited article to the article table.
+  let filter_results_editing = editing_articles::table
+                               .filter(editing_articles::columns::id.eq(&id_ref));
+
+  let update_result_editing  = diesel::update(filter_results_editing)
+                               .set((
+                                 editing_articles::columns::title.eq(&title_ref),
+                                 editing_articles::columns::body.eq(&body_ref)
+                               ))
+                               .execute(&connection);
+                 
+  match  update_result_editing {
     Ok(_) => HttpResponse::Created().await.unwrap(),
     Err(_) => HttpResponse::Conflict().await.unwrap()
   } 

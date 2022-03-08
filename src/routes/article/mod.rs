@@ -17,7 +17,7 @@ pub fn routes_factory(app: &mut web::ServiceConfig) {
   // app.route(&base_path.define(String::from("/get_all_tmp_articles")),
   //   web::get().to(get::get_all_tmp_articles));
   app.route(&base_path.define(String::from("/get_tmp_article_by_id")),
-    web::get().to(get::get_tmp_article_by_id));
+    web::get().to(get::get_editing_article_by_id));
   app.route(&base_path.define(String::from("/edit")),
     web::put().to(edit::edit));
   app.route(&base_path.define(String::from("/delete")),
