@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::database::establish_connection;
 use crate::models::article::article::Article as Model_Article;
+use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
 use crate::schema::articles;
+use crate::schema::editing_articles;
 
 #[derive(Deserialize)]
 pub struct RequestBody {
@@ -17,29 +19,47 @@ pub struct ResponseBody {
   message: String
 }
 
-/// This function deletes a to do item's status.
+/// Delete an article and an editing article.
 ///
 /// # Arguments
-/// * to_di_item (web::Json<ToDoItem>): This serializes the JSON body via the ToDoItem struct
+/// * request_body (web::Json<RequestBody>):
 ///
 /// # Returns
-/// (HttpResponse): response body to be passed to the viewer.
+/// (HttpResponse):
 pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   let connection = establish_connection();
-  let items = articles::table
-              .filter(articles::columns::id.eq(&request_body.id))
-              .load::<Model_Article>(&connection)
-              .unwrap();
+
+  // Delete article.
+  let articles = articles::table
+                 .filter(articles::columns::id.eq(&request_body.id))
+                 .load::<Model_Article>(&connection)
+                 .unwrap();
                           
-  let delete_result = diesel::delete(&items[0])
+  let delete_result = diesel::delete(&articles[0])
                       .execute(&connection);
 
-  // todo : delete editing article.
-
   match  delete_result {
-    Ok(_) => HttpResponse::Ok().json(ResponseBody {
-        message: String::from("Delete succeded.")
-      }),
+    Ok(_)  => HttpResponse::Ok().json(ResponseBody {
+                message: String::from("Delete an article succeded.")
+              }),
+
     Err(_) => HttpResponse::Conflict().await.unwrap()
-  } 
+  };
+
+  // Delete editing article.
+  let editing_articles = editing_articles::table
+                         .filter(editing_articles::columns::article_id.eq(&request_body.id))
+                         .load::<Model_EditingArticle>(&connection)
+                         .unwrap();
+                          
+  let delete_result_editing = diesel::delete(&editing_articles[0])
+                              .execute(&connection);
+
+  match  delete_result_editing {
+    Ok(_)  => HttpResponse::Ok().json(ResponseBody {
+                message: String::from("Delete an editing article succeded.")
+              }),
+
+    Err(_) => HttpResponse::Conflict().await.unwrap()
+  }
 }
