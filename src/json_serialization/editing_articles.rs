@@ -3,53 +3,39 @@ use serde::Serialize;
 use futures::future::{ready, Ready};
 use actix_web::{Responder, Error, HttpResponse, HttpRequest};
 
-use crate::json_serialization::article::Article;
+use crate::json_serialization::editing_article::EditingArticle;
 
 /// This struct packages the raw struct fields to package items for JSON serialization.
 ///
 /// # Parameters
-/// * pending_items (Vec<Base>): vector containing the statuses and titles of pending items
-/// * done_items (Vec<Base>):    vector containing the statuses and titles of the done items
-/// * pending_item_count (i8):   the number of pending items
-/// * done_item_count (i8):      the number of done items
+/// * editing_articles (Vec<EditingArticle>): 
 #[derive(Serialize)]
-pub struct Articles {
-  pub articles: Vec<Article>,
+pub struct EditingArticles {
+  pub editing_articles: Vec<EditingArticle>,
 }
 
-impl Articles {
-  /// This function constructs the Articles struct.
+impl EditingArticles {
+  /// Constructs the EditingArticles struct.
   ///
   /// # Arguments
   /// * input_items (Vec<ItemTypes>): the to do items super structs to be packaged
   ///
   /// # Returns
   /// * (Articles): package struct
-  pub fn new(input_articles: Vec<Article>) -> Articles {
-    let mut articles = Vec::new();
+  pub fn new(input_articles: Vec<EditingArticle>) -> EditingArticles {
+    let mut editing_articles = Vec::new();
 
     for input_article in input_articles {
-      articles.push(input_article);
+      editing_articles.push(input_article);
     }
 
-    // let mut articles = Vec::new();
-    // let title:   String = String::from("sample title");
-    // let content: String = String::from("sample content");
-    // let article: Article = Article::new(title, content);
-    // articles.push(article);
-
-    // let title2:   String = String::from("sample title2");
-    // let content2: String = String::from("sample content2");
-    // let article2: Article = Article::new(title2, content2);
-    // articles.push(article2);
-
-    return Articles {
-      articles: articles
+    return EditingArticles {
+      editing_articles: editing_articles
     }
   }
 }
 
-impl Responder for Articles {
+impl Responder for EditingArticles {
   type Error  = Error;
   type Future = Ready<Result<HttpResponse, Error>>;
   /// This function gets fired when the struct is being returned in an actix view.
