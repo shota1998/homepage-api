@@ -29,23 +29,6 @@ pub struct ResponseBody {
 pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   let connection = establish_connection();
 
-  // Delete article.
-  let articles = articles::table
-                 .filter(articles::columns::id.eq(&request_body.id))
-                 .load::<Model_Article>(&connection)
-                 .unwrap();
-                          
-  let delete_result = diesel::delete(&articles[0])
-                      .execute(&connection);
-
-  match  delete_result {
-    Ok(_)  => HttpResponse::Ok().json(ResponseBody {
-                message: String::from("Delete an article succeded.")
-              }),
-
-    Err(_) => HttpResponse::Conflict().await.unwrap()
-  };
-
   // Delete editing article.
   let editing_articles = editing_articles::table
                          .filter(editing_articles::columns::article_id.eq(&request_body.id))
@@ -58,6 +41,23 @@ pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   match  delete_result_editing {
     Ok(_)  => HttpResponse::Ok().json(ResponseBody {
                 message: String::from("Delete an editing article succeded.")
+              }),
+
+    Err(_) => HttpResponse::Conflict().await.unwrap()
+  };
+
+  // Delete article.
+  let articles = articles::table
+                 .filter(articles::columns::id.eq(&request_body.id))
+                 .load::<Model_Article>(&connection)
+                 .unwrap();
+                          
+  let delete_result = diesel::delete(&articles[0])
+                      .execute(&connection);
+
+  match  delete_result {
+    Ok(_)  => HttpResponse::Ok().json(ResponseBody {
+                message: String::from("Delete an article succeded.")
               }),
 
     Err(_) => HttpResponse::Conflict().await.unwrap()
