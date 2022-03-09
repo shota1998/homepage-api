@@ -27,9 +27,9 @@ pub struct RequestBody {
 pub async fn get_all_articles() -> impl Responder {
   let connection = establish_connection();
   let article_models = articles::table
-        .order(articles::columns::id.asc())
-        .load::<Model_Article>(&connection)
-        .unwrap();
+                                .order(articles::columns::id.asc())
+                                .load::<Model_Article>(&connection)
+                                .unwrap();
 
   let mut article_buffer = Vec::new();
 
