@@ -32,17 +32,6 @@ impl Articles {
       articles.push(input_article);
     }
 
-    // let mut articles = Vec::new();
-    // let title:   String = String::from("sample title");
-    // let content: String = String::from("sample content");
-    // let article: Article = Article::new(title, content);
-    // articles.push(article);
-
-    // let title2:   String = String::from("sample title2");
-    // let content2: String = String::from("sample content2");
-    // let article2: Article = Article::new(title2, content2);
-    // articles.push(article2);
-
     return Articles {
       articles: articles
     }
