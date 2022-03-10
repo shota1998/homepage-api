@@ -38,13 +38,14 @@ pub async fn delete(request_body: web::Json<RequestBody>) -> HttpResponse {
   let delete_result_editing = diesel::delete(&editing_articles[0])
                               .execute(&connection);
 
-  match  delete_result_editing {
-    Ok(_)  => HttpResponse::Ok().json(ResponseBody {
-                message: String::from("Delete an editing article succeded.")
-              }),
+  // todo : Detect whether eiditing article was created or not.
+  // match  delete_result_editing {
+  //   Ok(_)  => HttpResponse::Ok().json(ResponseBody {
+  //               message: String::from("Delete an editing article succeded.")
+  //             }),
 
-    Err(_) => HttpResponse::Conflict().await.unwrap()
-  };
+  //   Err(_) => HttpResponse::Conflict().await.unwrap()
+  // };
 
   // Delete article.
   let articles = articles::table
