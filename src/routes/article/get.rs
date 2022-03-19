@@ -17,6 +17,11 @@ pub struct RequestBody {
     id: i32,
 }
 
+#[derive(Deserialize)]
+pub struct RequestParameter {
+    id: i32,
+}
+
 /// Get all articles.
 ///
 /// # Arguments
@@ -131,11 +136,12 @@ pub async fn get_editing_article_by_id(request_body: web::Json<RequestBody>) -> 
 ///
 /// # Returns
 /// * (Responder): An editing article.
-pub async fn get_editing_article_by_article_id(request_body: web::Json<RequestBody>) -> impl Responder {
+// pub async fn get_editing_article_by_article_id(request_body: web::Json<RequestBody>) -> impl Responder {
+  pub async fn get_editing_article_by_article_id(request_parameter: web::Query<RequestParameter>) -> impl Responder {
   let connection = establish_connection();
   
   let editing_articles_model = editing_articles::table
-                                                .filter(editing_articles::columns::article_id.eq(&request_body.id))
+                                                .filter(editing_articles::columns::article_id.eq(&request_parameter.id))
                                                 .order(editing_articles::columns::id.asc())
                                                 .load::<Model_EditingArticle>(&connection)
                                                 .unwrap();

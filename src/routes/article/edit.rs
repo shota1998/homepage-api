@@ -10,11 +10,10 @@ use crate::models::article::article::Article as Model_Article;
 use crate::schema::articles;
 use crate::schema::editing_articles;
 
-// todo: The function is divided as follows.
+// todo: The query builder should be divided as follows.
 //         1: Obtaining an ID
 //         2: Getting the content
-// todo: test this function
-// todo: Describe common processes in the model.
+// todo: Move common processes into models.
 
 /// Reflect an editing_article to an article in article table.
 /// 
