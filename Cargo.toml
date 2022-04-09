@@ -27,3 +27,7 @@ env_logger = "0.8.1"
 
 # Needed for Postgres.
 openssl = "*"
+
+# Regular expression.
+regex = "0.1"
+

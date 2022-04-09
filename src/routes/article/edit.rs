@@ -2,7 +2,6 @@ use crate::diesel;
 use diesel::prelude::*;
 use actix_web::{web, Responder};
 use crate::database::establish_connection;
-use crate::json_serialization::article::Article;
 use crate::json_serialization::editing_article::EditingArticle;
 use crate::json_serialization::editing_article_without_article_id::EditingArticleWithoutArticleId;
 use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
@@ -55,17 +54,44 @@ pub async fn edit_article(editing_article: web::Json<EditingArticleWithoutArticl
                       .get_result::<Model_Article>(&connection)
                       .unwrap();
 
-  // todo : Detect whether eiditing article was created or not.
+  // Extract s3 objects url from an "article"/"editing article" using a regular expression.
+  use regex::Regex;
+
+  let regex_for_article         = Regex::new(r"\d+").unwrap();
+  let regex_for_editing_article = Regex::new(r"\d+").unwrap();
+
+  let article_body:         &str = &article_model.body;
+  let editing_article_body: &str = &editing_article_model.body;
+
+  let mut object_urls_in_editing_article: Vec<String> = vec![];
+
+  for object_url in regex_for_editing_article.captures_iter(editing_article_body) {
+    println!("{}", &object_url[0]);
+    object_urls_in_editing_article.push(String::from(&object_url[0]));
+  }
+
+  // Delete s3 objects that are no longer included in the article.
+  let mut iter = object_urls_in_editing_article.iter();
+
+  for object_url in regex_for_article.captures_iter(article_body) {
+    println!("{}", &object_url[0]);
+
+    if (iter.any(|x| x == &object_url[0])) {
+      // delete object
+    }
+  }
+
   // match  update_result {
   //   Ok(_) => HttpResponse::Created().await.unwrap(),
   //   Err(_) => HttpResponse::Conflict().await.unwrap()
   // };
                  
-  let article = Article::new(article_model.id.clone(),
-                             article_model.title.clone(),
-                             article_model.body.clone());
+  let editing_article = EditingArticle::new(editing_article_model.id.clone(),
+                                            editing_article_model.article_id.clone(),
+                                            editing_article_model.title.clone(),
+                                            editing_article_model.body.clone());
 
-  return article;
+  return editing_article;
 }
 
 /// Reflect edits to the editing_article table.
