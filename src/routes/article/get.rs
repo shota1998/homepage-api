@@ -132,12 +132,12 @@ pub async fn get_editing_article_by_id(request_body: web::Json<RequestBody>) -> 
 /// Extract by article_id.
 ///
 /// # Arguments
-/// * request_body web::Json<RequestBody>: 
+/// * request_parameter web::Query<RequestParameter>:
 ///
 /// # Returns
 /// * (Responder): An editing article.
 // pub async fn get_editing_article_by_article_id(request_body: web::Json<RequestBody>) -> impl Responder {
-  pub async fn get_editing_article_by_article_id(request_parameter: web::Query<RequestParameter>) -> impl Responder {
+pub async fn get_editing_article_by_article_id(request_parameter: web::Query<RequestParameter>) -> impl Responder {
   let connection = establish_connection();
   
   let editing_articles_model = editing_articles::table

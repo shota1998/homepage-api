@@ -22,12 +22,14 @@ pub fn routes_factory(app: &mut web::ServiceConfig) {
   app.route(&base_path.define(String::from("/get_all_editing_articles")),
     web::get().to(get::get_all_editing_articles));
 
-  app.route(&base_path.define(String::from("/edit_article")),
-    web::put().to(edit::edit_article));
   app.route(&base_path.define(String::from("/edit_editing_article")),
     web::put().to(edit::edit_editing_article));
   app.route(&base_path.define(String::from("/reflesh_editing_article")),
     web::put().to(edit::reflesh_editing_article));
+
+  // todo: Move "edit" to "sync".
+  app.route(&base_path.define(String::from("/sync_article")),
+  web::put().to(edit::edit_article));
     
   app.route(&base_path.define(String::from("/delete")),
     web::post().to(delete::delete));
