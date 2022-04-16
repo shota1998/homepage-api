@@ -54,33 +54,18 @@ pub async fn edit_article(editing_article: web::Json<EditingArticleWithoutArticl
                       .get_result::<Model_Article>(&connection)
                       .unwrap();
 
+  // ------------------------------------------
+  // Delete S3 objects.
+  // ------------------------------------------
+
+  // todo: migration.
   // Extract s3 objects url from an "article"/"editing article" using a regular expression.
-  use regex::Regex;
+  let object_urls_to_be_deleted: Vec<String> = 
+    extract_object_urls_to_be_deleted(&article_model.body, &editing_article_model.body);
 
-  let regex_for_article         = Regex::new(r"\d+").unwrap();
-  let regex_for_editing_article = Regex::new(r"\d+").unwrap();
+  // todo: delete object
 
-  let article_body:         &str = &article_model.body;
-  let editing_article_body: &str = &editing_article_model.body;
-
-  let mut object_urls_in_editing_article: Vec<String> = vec![];
-
-  for object_url in regex_for_editing_article.captures_iter(editing_article_body) {
-    println!("{}", &object_url[0]);
-    object_urls_in_editing_article.push(String::from(&object_url[0]));
-  }
-
-  // Delete s3 objects that are no longer included in the article.
-  let mut iter = object_urls_in_editing_article.iter();
-
-  for object_url in regex_for_article.captures_iter(article_body) {
-    println!("{}", &object_url[0]);
-
-    if (iter.any(|x| x == &object_url[0])) {
-      // delete object
-    }
-  }
-
+  // todo: check whther update was succeaded or not.
   // match  update_result {
   //   Ok(_) => HttpResponse::Created().await.unwrap(),
   //   Err(_) => HttpResponse::Conflict().await.unwrap()
@@ -92,6 +77,88 @@ pub async fn edit_article(editing_article: web::Json<EditingArticleWithoutArticl
                                             editing_article_model.body.clone());
 
   return editing_article;
+}
+
+fn delete_s3_objects(object_urls: &Vec<String>) -> Result<(),()> {
+  
+  
+
+  
+  return Ok(());
+}
+
+/// Compare an article and an editing article. \
+/// Then, extract s3 object urls not included in this editing article.
+/// 
+/// # Arguments
+/// * article_body         (&str): A body of an article.
+/// * editing_article_body (&str): A body of an editing article.
+/// 
+///  # Returns
+///  (Vec<String>): Extracted urls to be deleted.
+fn extract_object_urls_to_be_deleted(
+  article_body:         &str,
+  editing_article_body: &str
+) -> Vec<String> {
+  
+  let     object_urls_in_article:         Vec<String> = extract_object_urls(article_body);
+  let     object_urls_in_editing_article: Vec<String> = extract_object_urls(editing_article_body);
+  let mut object_urls_to_be_deleted:      Vec<String> = vec![];
+
+  // Extract object urls which are not included in an editing article from an article.
+  let mut is_included: bool = false;
+
+  for object_url_in_article in &object_urls_in_article {
+    for object_url_in_editing_article in &object_urls_in_editing_article {
+      if object_url_in_article == object_url_in_editing_article{
+        is_included = true;
+        break;
+      }
+    }
+
+    if !is_included {
+      object_urls_to_be_deleted.push(String::from(object_url_in_article));
+    }
+
+    is_included = false;
+  }
+
+  return object_urls_to_be_deleted;
+}
+
+/// Extract s3 object urls from a body using a regular expression.
+/// 
+/// # Arguments
+/// * body (&str): A body of an article.
+/// 
+///  # Returns
+///  (Vec<String>): Extracted urls.
+fn extract_object_urls(body: &str) -> Vec<String> {
+
+  use regex::Regex;
+
+  // todo: extract main url to env file.
+  let regex_pattern : &str = r"(?x)
+      (!\[image\]\()    # Image tag in markdown.
+      (https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/){1}    # Path to a S3 backet.
+      (\d{4})_     # Year
+      (\d{1,2})_   # Month
+      (\d{1,2})_   # Day
+      (\d{1,2})_   # Hour
+      (\d{1,2})_   # Minute
+      (\d{1,2})    # Second
+    ";
+  
+  let regex = Regex::new(regex_pattern).unwrap();
+  
+  let mut object_urls: Vec<String> = vec![];
+
+  // Extract object urls.
+  for object_url in regex.captures_iter(body) {
+    object_urls.push(String::from(&object_url[0]));
+  }
+
+  return object_urls;
 }
 
 /// Reflect edits to the editing_article table.
@@ -182,4 +249,76 @@ pub async fn reflesh_editing_article(editing_article: web::Json<EditingArticleWi
                                             editing_article_model.body.clone());
 
   return editing_article;
+}
+
+#[cfg(test)]
+mod test_routes_article_edit {
+    use super::*;
+
+    fn store_image_files() -> Result<(), ()> {
+
+      return Ok(());
+    }
+
+    #[test]
+    fn test_delete_s3_objects() {
+
+      let object_urls: Vec<String> = vec![];
+
+      // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
+      // Store s3 object
+      // 
+
+      match store_image_files() {
+        
+      }
+
+      let result = delete_s3_objects(&object_urls);
+
+      assert_eq!(true, result);
+    }
+
+    #[test]
+    fn test_extract_object_urls_to_be_deleted() {
+      let article_body =
+        "foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_1_1_1_1_1)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_5_5_5_5_5)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_12_12_12_12_12)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_13_13_13_13_13)bar";
+
+      let editing_article_body =
+        "foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_1_1_1_1_1)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_2_2_2_2_2)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_4_4_4_4_4)bar
+         foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_12_12_12_12_12)bar";
+
+      let expected_urls : Vec<String> = vec![
+        String::from("![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_5_5_5_5_5"),
+        String::from("![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_13_13_13_13_13")
+      ];
+
+      let actual_urls : Vec<String> = 
+        extract_object_urls_to_be_deleted(article_body, editing_article_body);
+      
+      assert_eq!(expected_urls, actual_urls);
+    }
+
+    #[test]
+    fn test_extract_object_urls() {
+        let body = 
+          "foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_1_1_1_1_1)bar
+           foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_222_2_2_2_2)bar
+           foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/20222_3_3_3_3_3)bar
+           foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_4_4_4_4)bar
+           foo![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_12_12_12_12_12)bar";
+
+        let expected_urls : Vec<String> = vec![
+          String::from("![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_1_1_1_1_1"),
+          String::from("![image](https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/2022_12_12_12_12_12")
+        ];
+
+        let actual_urls : Vec<String> = extract_object_urls(body);
+        
+        assert_eq!(expected_urls, actual_urls);
+    }
 }
