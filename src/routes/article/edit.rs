@@ -79,12 +79,12 @@ pub async fn edit_article(editing_article: web::Json<EditingArticleWithoutArticl
   return editing_article;
 }
 
-fn delete_s3_objects(object_urls: &Vec<String>) -> Result<(),()> {
+fn delete_s3_objects(object_urls: &Vec<String>) -> Result<bool,()> {
   
   
 
   
-  return Ok(());
+  return Ok(true);
 }
 
 /// Compare an article and an editing article. \
@@ -135,12 +135,23 @@ fn extract_object_urls_to_be_deleted(
 ///  (Vec<String>): Extracted urls.
 fn extract_object_urls(body: &str) -> Vec<String> {
 
+  use std::env;
+  use dotenv::dotenv;
   use regex::Regex;
 
-  // todo: extract main url to env file.
-  let regex_pattern : &str = r"(?x)
-      (!\[image\]\()    # Image tag in markdown.
-      (https://homepage-s2cach.s3.ap-northeast-1.amazonaws.com/){1}    # Path to a S3 backet.
+  dotenv().ok();
+
+  // Create a regex pattern.
+  let mut regex_pattern: String = r"(?x)
+      (!\[image\]\()  # Image tag in markdown.
+    "
+    .to_owned();
+
+  let file_storage_location: &str = 
+    &format!("({}){{1}}", env::var("FILE_STORAGE_LOCATION")
+     .expect("FILE_STORAGE_LOCATION must be set."));
+    
+  let file_name: &str = r"(?x)
       (\d{4})_     # Year
       (\d{1,2})_   # Month
       (\d{1,2})_   # Day
@@ -148,8 +159,11 @@ fn extract_object_urls(body: &str) -> Vec<String> {
       (\d{1,2})_   # Minute
       (\d{1,2})    # Second
     ";
-  
-  let regex = Regex::new(regex_pattern).unwrap();
+
+  regex_pattern.push_str(file_storage_location);
+  regex_pattern.push_str(file_name);
+
+  let regex = Regex::new(&regex_pattern).unwrap();
   
   let mut object_urls: Vec<String> = vec![];
 
@@ -255,27 +269,30 @@ pub async fn reflesh_editing_article(editing_article: web::Json<EditingArticleWi
 mod test_routes_article_edit {
     use super::*;
 
-    fn store_image_files() -> Result<(), ()> {
+    fn store_image_files() -> Result<Vec<String>, ()> {
 
-      return Ok(());
+      let urls : Vec<String> = vec![
+        String::from(""),
+        String::from("")
+      ];
+
+      return Ok(urls);
     }
 
     #[test]
     fn test_delete_s3_objects() {
-
-      let object_urls: Vec<String> = vec![];
-
       // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
       // Store s3 object
       // 
 
-      match store_image_files() {
-        
-      }
+      let object_urls: Vec<String> = match store_image_files() {
+        Ok(object_urls)    => object_urls,
+        Err(erroe_message) => panic!(erroe_message)
+      };
 
       let result = delete_s3_objects(&object_urls);
 
-      assert_eq!(true, result);
+      assert_eq!(true, result.unwrap());
     }
 
     #[test]

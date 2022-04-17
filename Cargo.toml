@@ -1,5 +1,5 @@
 [package]
-name = "rust-web-programing"
+name = "homepage-api-server-for-editer"
 version = "0.1.0"
 edition = "2018"
 
