@@ -8,6 +8,7 @@ use futures::future::{ok, Either};
 use log;
 use env_logger;
 use std::env;
+use dotenv::dotenv;
 mod schema;
 mod database;
 mod models;
@@ -17,14 +18,16 @@ mod auth;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+
     // Set environmental valuable.
-    env::set_var("RUST_LOG", "info");
+    // env::set_var("RUST_LOG", "info");
     // Start logging.
-    env_logger::init();
+    // env_logger::init();
     // Create http server.
     HttpServer::new(|| {
         let cors = Cors::default()
-                    .allowed_origin("http://localhost:3000")
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN_1").expect("ALLOWED_ORIGIN_1 must be set."))
                     // .allowed_origin_fn(|origin, _req_head| {
                     //     origin.as_bytes().ends_with(b"localhost")
                     // })
@@ -89,7 +92,7 @@ async fn main() -> std::io::Result<()> {
         return app
     })
     // .bind("127.0.0.1:8000")?
-    .bind("0.0.0.0:8000")?
+    .bind("0.0.0.0:8001")?
     .run()
     .await
 }

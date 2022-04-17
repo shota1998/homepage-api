@@ -903,6 +903,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "homepage-api-server-for-editer"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-rt",
+ "actix-service",
+ "actix-web",
+ "bcrypt",
+ "diesel",
+ "dotenv",
+ "env_logger",
+ "futures",
+ "hmac",
+ "jwt",
+ "log",
+ "openssl",
+ "regex 0.1.80",
+ "serde",
+ "serde_json",
+ "sha2",
+ "uuid",
+]
+
+[[package]]
 name = "hostname"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1464,30 +1488,6 @@ checksum = "52e44394d2086d010551b14b53b1f24e31647570cd1deb0379e2c21b329aba00"
 dependencies = [
  "hostname",
  "quick-error",
-]
-
-[[package]]
-name = "rust-web-programing"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-rt",
- "actix-service",
- "actix-web",
- "bcrypt",
- "diesel",
- "dotenv",
- "env_logger",
- "futures",
- "hmac",
- "jwt",
- "log",
- "openssl",
- "regex 0.1.80",
- "serde",
- "serde_json",
- "sha2",
- "uuid",
 ]
 
 [[package]]
