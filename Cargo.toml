@@ -6,23 +6,25 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "3"
-actix-rt = "1.0"
+actix-web     = "3"
+actix-rt      = "1.0"
 actix-service = "1.0.6"
-actix-cors = "0.5.4"
-serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-futures = "0.3.7"
-serde = "1"
-diesel = {version = "1.4.4", features = ["postgres"]}
-dotenv = "0.15.0"
-bcrypt = "0.8.2"
-uuid = {version = "0.8", features = ["serde", "v4"]}
+actix-cors    = "0.5.4"
+serde_json    = { version = "1.0", default-features = false, features = ["alloc"] }
+futures       = "0.3.7"
+serde         = "1"
+diesel        = {version = "1.4.4", features = ["postgres"]}
+dotenv        = "0.15.0"
+bcrypt        = "0.8.2"
+uuid          = {version = "0.8", features = ["serde", "v4"]}
 
-jwt = "0.9.0"
+# Hash
+jwt  = "0.9.0"
 hmac = "0.8.1"
 sha2 = "0.9"
 
-log = "0.4.11"
+# Logger
+log        = "0.4.11"
 env_logger = "0.8.1"
 
 # Needed for Postgres.
@@ -31,3 +33,6 @@ openssl = "*"
 # Regular expression.
 regex = "0.1"
 
+# AWS
+aws-config = "0.10.1"
+rust-s3    = "0.30.0"

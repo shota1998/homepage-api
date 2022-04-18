@@ -283,7 +283,6 @@ mod test_routes_article_edit {
     fn test_delete_s3_objects() {
       // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
       // Store s3 object
-      // 
 
       let object_urls: Vec<String> = match store_image_files() {
         Ok(object_urls)    => object_urls,
