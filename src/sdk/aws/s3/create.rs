@@ -27,29 +27,6 @@ struct Opt {
     verbose: bool,
 }
 
-// Adds an object to a bucket and returns a public URI.
-// snippet-start:[s3.rust.put-object-presigned]
-async fn put_object(
-    client: &Client,
-    bucket: &str,
-    object: &str,
-    expires_in: u64,
-) -> Result<(), Box<dyn Error>> {
-    let expires_in = Duration::from_secs(expires_in);
-
-    let presigned_request = client
-        .put_object()
-        .bucket(bucket)
-        .key(object)
-        .presigned(PresigningConfig::expires_in(expires_in)?)
-        .await?;
-
-    println!("Object URI: {}", presigned_request.uri());
-
-    Ok(())
-}
-// snippet-end:[s3.rust.put-object-presigned]
-
 /// Adds an object to a bucket and returns a public URI.
 /// # Arguments
 ///
@@ -61,34 +38,43 @@ async fn put_object(
 /// * `[-e EXPIRES_IN]` - The amount of time the presigned request should be valid for.
 ///   If not given, this defaults to 15 minutes.
 /// * `[-v]` - Whether to display additional information.
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    tracing_subscriber::fmt::init();
+pub async fn put_object(
+    region:    &str,
+    bucket:    &str,
+    object:    &str,
+    expires_in: u64
+) -> Result<(), Box<dyn Error>> {
 
-    let Opt {
-        region,
-        bucket,
-        object,
-        expires_in,
-        verbose,
-    } = Opt::from_args();
+    tracing_subscriber::fmt::init();
 
     let region_provider = RegionProviderChain::first_try(region.map(Region::new))
         .or_default_provider()
         .or_else(Region::new("us-west-2"));
+        
     let shared_config = aws_config::from_env().region(region_provider).load().await;
+
     let client = Client::new(&shared_config);
 
+    let expires_in = Duration::from_secs(expires_in.unwrap_or(900));
+
+    // Adds an object to a bucket and returns a public URI.
+    let presigned_request = &client
+        .put_object()
+        .bucket(&bucket)
+        .key(&object)
+        .presigned(PresigningConfig::expires_in(expires_in)?)
+        .await?;
+
     println!();
+    println!("S3 client version: {}", PKG_VERSION);
+    println!("Region:            {}", shared_config.region().unwrap());
+    println!("Bucket:            {}", &bucket);
+    println!("Object:            {}", &object);
+    println!("Expires in:        {} seconds", expires_in.unwrap_or(900));
+    println!();
+    println!("Object URI: {}", presigned_request.uri());
 
-    if verbose {
-        println!("S3 client version: {}", PKG_VERSION);
-        println!("Region:            {}", shared_config.region().unwrap());
-        println!("Bucket:            {}", &bucket);
-        println!("Object:            {}", &object);
-        println!("Expires in:        {} seconds", expires_in.unwrap_or(900));
-        println!();
-    }
-
-    put_object(&client, &bucket, &object, expires_in.unwrap_or(900)).await
+    Ok(())
 }
+
+// todo: test
