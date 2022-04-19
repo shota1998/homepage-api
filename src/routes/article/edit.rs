@@ -268,15 +268,13 @@ pub async fn reflesh_editing_article(editing_article: web::Json<EditingArticleWi
 #[cfg(test)]
 mod test_routes_article_edit {
     use super::*;
+    use crate::sdk::aws::s3::create;
 
-    fn store_image_files() -> Result<Vec<String>, ()> {
+    fn create_local_object() -> String {
 
-      let urls : Vec<String> = vec![
-        String::from(""),
-        String::from("")
-      ];
+      let file_path = String::from("hoge");
 
-      return Ok(urls);
+      return file_path;
     }
 
     #[test]
@@ -284,7 +282,14 @@ mod test_routes_article_edit {
       // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
       // Store s3 object
 
-      let object_urls: Vec<String> = match store_image_files() {
+      let result_put_object = create::put_object(
+        region: &str, 
+        bucket: &str, 
+        object: &str, 
+        expires_in: u64
+      );
+
+      let object_urls: Vec<String> = match result_put_object {
         Ok(object_urls)    => object_urls,
         Err(erroe_message) => panic!(erroe_message)
       };

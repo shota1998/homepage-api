@@ -88,3 +88,5 @@ async fn main() -> Result<(), Error> {
 
     remove_objects(&client, &bucket, objects).await
 }
+
+// todo: test

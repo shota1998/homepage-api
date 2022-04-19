@@ -15,6 +15,7 @@ mod models;
 mod json_serialization;
 mod routes;
 mod auth;
+mod sdk;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
