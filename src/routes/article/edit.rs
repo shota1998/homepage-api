@@ -136,10 +136,10 @@ fn extract_object_urls_to_be_deleted(
 fn extract_object_urls(body: &str) -> Vec<String> {
 
   use std::env;
-  use dotenv::dotenv;
+  // use dotenv::dotenv;
   use regex::Regex;
 
-  dotenv().ok();
+  // dotenv().ok();
 
   // Create a regex pattern.
   let mut regex_pattern: String = r"(?x)
@@ -269,6 +269,8 @@ pub async fn reflesh_editing_article(editing_article: web::Json<EditingArticleWi
 mod test_routes_article_edit {
     use super::*;
     use crate::sdk::aws::s3::create;
+    use std::env;
+
 
     fn create_local_object() -> String {
 
@@ -282,12 +284,10 @@ mod test_routes_article_edit {
       // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
       // Store s3 object
 
-      let result_put_object = create::put_object(
-        region: &str, 
-        bucket: &str, 
-        object: &str, 
-        expires_in: u64
-      );
+      let result_put_object = create::put_object(region, 
+                                                 bucket, 
+                                                 object, 
+                                                 expires_in);
 
       let object_urls: Vec<String> = match result_put_object {
         Ok(object_urls)    => object_urls,
