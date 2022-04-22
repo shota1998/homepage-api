@@ -9,6 +9,7 @@ use log;
 use env_logger;
 use std::env;
 use dotenv::dotenv;
+
 mod schema;
 mod database;
 mod models;
@@ -16,6 +17,7 @@ mod json_serialization;
 mod routes;
 mod auth;
 mod sdk;
+mod others;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

@@ -46,3 +46,24 @@ pub async fn put_object<'a>(
 }
 
 // todo: test
+#[cfg(test)]
+mod test_sdk_aws_s3_create {
+    use super::*;
+    use std::env;
+    
+    // use crate::others::delete_file;
+
+    // #[test]
+    // fn test_put_object() {
+    //     let &file_path = create_sample_file();
+
+    //     let result = put_object(env::var("AWS_REGION"),
+    //                             env::var("AWS_BUCKET"),
+    //                             file_path,
+    //                             300);
+
+    //     delete_file(&file_path);
+
+    //     assert_eq!(true, result.unwrap()); 
+    // }
+}
