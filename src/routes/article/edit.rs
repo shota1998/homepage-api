@@ -136,10 +136,10 @@ fn extract_object_urls_to_be_deleted(
 fn extract_object_urls(body: &str) -> Vec<String> {
 
   use std::env;
-  // use dotenv::dotenv;
+  use dotenv::dotenv;
   use regex::Regex;
 
-  // dotenv().ok();
+  dotenv().ok();
 
   // Create a regex pattern.
   let mut regex_pattern: String = r"(?x)
@@ -271,7 +271,6 @@ mod test_routes_article_edit {
     use crate::sdk::aws::s3::create;
     use std::env;
 
-
     fn create_local_object() -> String {
 
       let file_path = String::from("hoge");
@@ -279,25 +278,25 @@ mod test_routes_article_edit {
       return file_path;
     }
 
-    #[test]
-    fn test_delete_s3_objects() {
-      // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
-      // Store s3 object
+    // #[test]
+    // fn test_delete_s3_objects() {
+    //   // todo: rename "s3 object" to "image fiel" because it should be stored in google drive.
+    //   // Store s3 object
 
-      let result_put_object = create::put_object(region, 
-                                                 bucket, 
-                                                 object, 
-                                                 expires_in);
+    //   let result_put_object = create::put_object(region, 
+    //                                              bucket, 
+    //                                              object, 
+    //                                              expires_in);
 
-      let object_urls: Vec<String> = match result_put_object {
-        Ok(object_urls)    => object_urls,
-        Err(erroe_message) => panic!(erroe_message)
-      };
+    //   let object_urls: Vec<String> = match result_put_object {
+    //     Ok(object_urls)    => object_urls,
+    //     Err(erroe_message) => panic!(erroe_message)
+    //   };
 
-      let result = delete_s3_objects(&object_urls);
+    //   let result = delete_s3_objects(&object_urls);
 
-      assert_eq!(true, result.unwrap());
-    }
+    //   assert_eq!(true, result.unwrap());
+    // }
 
     #[test]
     fn test_extract_object_urls_to_be_deleted() {
