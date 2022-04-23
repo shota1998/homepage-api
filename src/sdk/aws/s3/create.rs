@@ -51,19 +51,19 @@ mod test_sdk_aws_s3_create {
     use super::*;
     use std::env;
     
-    use crate::others::create_file;
+    use crate::others::create_file::*;
 
-    // #[test]
-    // fn test_put_object() {
-    //     let &file_path = create_sample_file();
+    #[actix_rt::test]
+    async fn test_put_object() {
+        let file_path = &create_file("sample").unwrap();
 
-    //     let result = put_object(env::var("AWS_REGION"),
-    //                             env::var("AWS_BUCKET"),
-    //                             file_path,
-    //                             300);
+        let result = put_object(&env::var("AWS_REGION").unwrap(),
+                                &env::var("AWS_BUCKET").unwrap(),
+                                file_path,
+                                &300).await;
 
-    //     delete_file(&file_path);
+        // delete_file(&file_path);
 
-    //     assert_eq!(true, result.unwrap()); 
-    // }
+        assert_eq!((), result.unwrap()); 
+    }
 }
