@@ -51,7 +51,7 @@ mod test_sdk_aws_s3_create {
     use super::*;
     use std::env;
     
-    // use crate::others::delete_file;
+    use crate::others::create_file;
 
     // #[test]
     // fn test_put_object() {

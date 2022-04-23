@@ -1,11 +1,44 @@
-pub fn create_sampe_file () {
-  
+/// Create a file.
+/// 
+/// # Arguments
+/// * file_name (&str): File name for which will be created.
+/// 
+///  # Returns
+///  Result<String, std::io::Error>: If succeeded to create a file, return a path to file.
+///                                  Otherwise, return an error.
+pub fn create_file (file_name: &str) -> Result<String, std::io::Error> {
+  use std::fs::File;
+  use std::io::prelude::*;
+  // use chrono;
+
+  let path: String = create_file_path(file_name);
+  let text         = &chrono::offset::Local::now().to_rfc2822();
+
+  // Open a file in write-only mode, returns `io::Result<File>`
+  let mut file = match File::create(&path) {
+    Ok(file) => file,
+    Err(why) => panic!("couldn't create {}: {}", path, why),
+  };
+
+  // Write the string to `file`, returns `io::Result<()>`
+  match file.write_all(text.as_bytes()) {
+    Ok(_)    => Ok(path),
+    Err(why) => Err(why),
+  }
 }
 
-fn create_sample_file_path (file_name: &str) -> String {
+/// Create a file path. \
+/// This functin is mainly supposed to be used for other test function, such as s3.
+/// 
+/// # Arguments
+/// * file_name (&str): File name for which will be created.
+/// 
+///  # Returns
+///  (String): Created file path.
+fn create_file_path (file_name: &str) -> String {
   use std::env;
   use dotenv::dotenv;
-
+  
   dotenv().ok();
 
   let mut path_to_project_root: String = env::current_dir()
@@ -28,25 +61,23 @@ fn create_sample_file_path (file_name: &str) -> String {
 #[cfg(test)]
 mod others_create_file {
     use super::*;
-    use std::env;
-    // use crate::others::crete_file;
-    // use crate::others::delete_file;
 
     #[test]
-    fn test_put_object() {
-      // create_sampe_file();
+    fn test_create_file() {
+      let file_name: &str = "sample";
+      let ecpected_path   = create_file_path(file_name);
+      let result          = create_file(file_name);
 
-      // let path = env::current_dir()?;
-      let path = env::current_dir().unwrap();
-      assert_eq!("env::current_exe().unwrap()", path.to_str().unwrap());
+      assert_eq!(ecpected_path, result.unwrap());
     }
 
     #[test]
-    fn test_create_sample_file_path() {
+    fn test_create_file_path() {
       
       // todo : occur error when null is passed.
-      let path: String = create_sample_file_path("hoge");
+      let path = create_file_path("hoge");
 
+      // todd: replace this str to env variable.
       assert_eq!("/home/shota/project/homepage/homepage-api-server-for-editer/src/file/storage/hoge", 
                  path.as_str());
     }
