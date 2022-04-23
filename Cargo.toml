@@ -17,6 +17,7 @@ diesel        = {version = "1.4.4", features = ["postgres"]}
 dotenv        = "0.15.0"
 bcrypt        = "0.8.2"
 uuid          = {version = "0.8", features = ["serde", "v4"]}
+chrono        = "0.4"
 
 # Hash
 jwt  = "0.9.0"
