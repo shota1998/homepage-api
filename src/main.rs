@@ -1,12 +1,17 @@
 #[macro_use] extern crate diesel;
 
-use actix_web::{App, HttpServer, HttpResponse, http};
-use actix_service::Service;
+use actix_web::{
+    App,
+    HttpServer,
+    HttpResponse,
+    http
+};
+use actix_web::dev::Service;
+// use actix_service::Service;
 use actix_cors::Cors;
 use futures::future::{ok, Either};
 
 use log;
-use env_logger;
 use std::env;
 use dotenv::dotenv;
 
@@ -22,18 +27,11 @@ mod others;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-
-    // Set environmental valuable.
-    // env::set_var("RUST_LOG", "info");
-    // Start logging.
-    // env_logger::init();
+    
     // Create http server.
     HttpServer::new(|| {
         let cors = Cors::default()
                     .allowed_origin(&env::var("ALLOWED_ORIGIN_1").expect("ALLOWED_ORIGIN_1 must be set."))
-                    // .allowed_origin_fn(|origin, _req_head| {
-                    //     origin.as_bytes().ends_with(b"localhost")
-                    // })
                     .allowed_methods(vec!["GET", "POST", "PUT"])
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
@@ -44,7 +42,6 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600);
 
         let app = App::new()
-            // .wrap(cors)
             .wrap(cors)
             .wrap_fn(|req, srv| {
                 // srv => routing
@@ -56,7 +53,6 @@ async fn main() -> std::io::Result<()> {
                 let passed: bool;
 
                 // Check token.
-                // ??? What is "*&req" ?
                 if *&req.path().contains("/item/") {
                     match auth::process_token(&req) {
                         Ok(_token) => {passed = true;},
@@ -71,22 +67,22 @@ async fn main() -> std::io::Result<()> {
                     // Call request.
                     true => {
                         Either::Left(srv.call(req))
+                        // ok(Either::Left(srv.call(req)))
                     },
                     // Send body which says failing in process.
                     false => {
+                        let resp = HttpResponse::Unauthorized().finish();
+                        
                         Either::Right(
-                            ok(req.into_response(
-                                HttpResponse::Unauthorized()
-                                                .finish()
-                                                .into_body())
-                            )
+                            ok(req.into_response(resp))
+                            // req.into_response(resp)
                         )
                     }
                 };
 
                 // Await result to log.
                 async move {
-                    let result  = end_result.await?;
+                    let result = end_result.await?;
                     log::info!("{} -> {}", request_url, &result.status());
                     Ok(result)
                 }

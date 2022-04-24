@@ -38,7 +38,7 @@ pub fn extract_header_token(request: &ServiceRequest) -> Result<String, &'static
 mod check_credentials_tests {
 
    use super::super::jwt::JwtToken;
-   use super::extract_header_token;
+  //  use super::extract_header_token;
    use super::check_password;
    use actix_web::test;
 
