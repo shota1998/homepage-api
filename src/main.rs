@@ -7,11 +7,8 @@ use actix_web::{
     http
 };
 use actix_web::dev::Service;
-// use actix_service::Service;
 use actix_cors::Cors;
 use futures::future::{ok, Either};
-
-use log;
 use std::env;
 use dotenv::dotenv;
 
@@ -43,18 +40,15 @@ async fn main() -> std::io::Result<()> {
 
         let app = App::new()
             .wrap(cors)
-            .wrap_fn(|req, srv| {
-                // srv => routing
-                // req => service request
-                
+            .wrap_fn(|request, service| {
                 // Maintain request uri path to be remembered through the process.
-                let request_url: String = String::from(*&req.uri().path().clone());
+                let request_url: String = String::from(*&request.uri().path().clone());
                 // If token passed or not.
                 let passed: bool;
 
                 // Check token.
-                if *&req.path().contains("/item/") {
-                    match auth::process_token(&req) {
+                if *&request.path().contains("/item/") {
+                    match auth::process_token(&request) {
                         Ok(_token) => {passed = true;},
                         Err(_message) => {passed = false;}
                     };
@@ -66,21 +60,16 @@ async fn main() -> std::io::Result<()> {
                 let end_result = match passed {
                     // Call request.
                     true => {
-                        Either::Left(srv.call(req))
-                        // ok(Either::Left(srv.call(req)))
+                        Either::Left(service.call(request))
                     },
                     // Send body which says failing in process.
                     false => {
                         let resp = HttpResponse::Unauthorized().finish();
-                        
-                        Either::Right(
-                            ok(req.into_response(resp))
-                            // req.into_response(resp)
-                        )
+                        Either::Right(ok(request.into_response(resp).map_into_right_body()))
                     }
                 };
 
-                // Await result to log.
+                // Await result to be loged.
                 async move {
                     let result = end_result.await?;
                     log::info!("{} -> {}", request_url, &result.status());
