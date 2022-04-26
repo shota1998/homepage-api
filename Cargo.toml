@@ -37,5 +37,4 @@ regex = "0.1"
 
 # AWS
 aws-config = "0.10.1"
-  # rust-s3    = "0.30.0"
 aws-sdk-s3 = "0.10.1"
