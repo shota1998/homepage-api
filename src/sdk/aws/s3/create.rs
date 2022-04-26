@@ -11,12 +11,15 @@ use std::time::Duration;
 /// * object(&str)   - The name of the file to upload to the bucket.
 /// * duration(&u64) - The amount of time the presigned request should be valid for.
 ///   If not given, this defaults to 15 minutes.
+/// 
+///  # Returns
+///  Result<String, Box<dyn Error>>: If succeeded to put an object, return a path to an object.
 pub async fn put_object<'a>(
     region:    &'a str,
     bucket:    &str,
     object:    &str,
     duration:  &u64
-) -> Result<(), Box<dyn Error>> {
+) -> Result<String, Box<dyn Error>> {
 
     // tracing_subscriber::fmt::init();
 
@@ -25,6 +28,7 @@ pub async fn put_object<'a>(
     let client          = Client::new(&shared_config);
     let duration_object = Duration::from_secs(*duration);
 
+    // todo: add credential info
     // Adds an object to a bucket and returns a public URI.
     let presigned_request = &client
         .put_object()
@@ -33,6 +37,11 @@ pub async fn put_object<'a>(
         .presigned(PresigningConfig::expires_in(duration_object)?)
         .await?;
 
+    let path_to_object: String = presigned_request.uri()
+                                                  .path_and_query()
+                                                  .unwrap()
+                                                  .to_string();
+
     println!();
     println!("S3 client version: {}", PKG_VERSION);
     println!("Region:            {}", shared_config.region().unwrap());
@@ -40,9 +49,9 @@ pub async fn put_object<'a>(
     println!("Object:            {}", &object);
     println!("Expires in:        {} seconds", duration);
     println!();
-    println!("Object URI: {}", presigned_request.uri());
+    println!("Object URI: {}", path_to_object);
 
-    Ok(())
+    Ok(path_to_object)
 }
 
 // todo: test
@@ -53,7 +62,8 @@ mod test_sdk_aws_s3_create {
     
     use crate::others::create_file::*;
 
-    #[actix_rt::test]
+    // #[actix_rt::test]
+    #[actix_web::test]
     async fn test_put_object() {
         let file_path = &create_file("sample").unwrap();
 
@@ -64,6 +74,6 @@ mod test_sdk_aws_s3_create {
 
         // delete_file(&file_path);
 
-        assert_eq!((), result.unwrap()); 
+        assert_eq!("hoge", result.unwrap()); 
     }
 }
