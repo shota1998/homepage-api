@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /// Create a file.
 /// 
 /// # Arguments
@@ -57,7 +59,6 @@ fn create_file_path (file_name: &str) -> String {
   return path_to_project_root;
 }
 
-// todo: test
 #[cfg(test)]
 mod others_create_file {
     use super::*;

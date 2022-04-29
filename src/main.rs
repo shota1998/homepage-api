@@ -21,6 +21,7 @@ mod auth;
 mod sdk;
 mod others;
 
+// #[actix_web::main]
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
