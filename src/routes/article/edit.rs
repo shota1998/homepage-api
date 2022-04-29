@@ -148,8 +148,7 @@ fn extract_object_urls(body: &str) -> Vec<String> {
     .to_owned();
 
   let file_storage_location: &str = 
-    &format!("({}){{1}}", env::var("FILE_STORAGE_LOCATION")
-     .expect("FILE_STORAGE_LOCATION must be set."));
+    &format!("({}){{1}}", env::var("FILE_STORAGE_LOCATION").expect("FILE_STORAGE_LOCATION must be set."));
     
   let file_name: &str = r"(?x)
       (\d{4})_     # Year

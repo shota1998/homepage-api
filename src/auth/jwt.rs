@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 extern crate hmac;
 extern crate jwt;
 extern crate sha2;

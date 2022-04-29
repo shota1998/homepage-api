@@ -1,29 +1,25 @@
-use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::model::{Delete, ObjectIdentifier};
-use aws_sdk_s3::{Client, Error, Region, PKG_VERSION};
+use aws_sdk_s3::{Client, Error};
 
-#[derive(Debug, StructOpt)]
-struct Opt {
-    /// The AWS Region.
-    #[structopt(short, long)]
-    region: Option<String>,
+/// Deletes objects from a bucket.
+/// # Arguments
+///
+/// * bucket(&str)     - The bucket where the object is uploaded.
+/// * local_path(&str) - The name of the file to upload to the bucket.
+/// * key(&str)        - The name of the file to upload to the bucket.
+/// * duration(&u64)   - The amount of time the presigned request should be valid for.
+///   If not given, this defaults to 15 minutes.
+/// 
+///  # Returns
+///  Result<String>: Not defined yet...
+async fn delete_objects(
+    client: &Client,
+    bucket: &str,
+    objects: Vec<String>
+) -> Result<(), Error> {
 
-    /// The name of the bucket.
-    #[structopt(short, long)]
-    bucket: String,
+    // tracing_subscriber::fmt::init();
 
-    /// The objects to delete.
-    #[structopt(short, long)]
-    objects: Vec<String>,
-
-    /// Whether to display additional information.
-    #[structopt(short, long)]
-    verbose: bool,
-}
-
-// Deletes objects from a bucket.
-// snippet-start:[s3.rust.delete-objects]
-async fn remove_objects(client: &Client, bucket: &str, objects: Vec<String>) -> Result<(), Error> {
     let mut delete_objects: Vec<ObjectIdentifier> = vec![];
 
     for obj in objects {
@@ -44,49 +40,27 @@ async fn remove_objects(client: &Client, bucket: &str, objects: Vec<String>) -> 
 
     Ok(())
 }
-// snippet-end:[s3.rust.delete-objects]
-
-/// Removes objects from an Amazon S3 bucket.
-/// # Arguments
-///
-/// * `-b BUCKET` - The name of the bucket.
-/// * `-o OBJECTS` - The names of the objects to delete.
-/// * `[-r REGION]` - The Region in which the client is created.
-///   If not supplied, uses the value of the **AWS_REGION** environment variable.
-///   If the environment variable is not set, defaults to **us-west-2**.
-/// * `[-v]` - Whether to display additional information.
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt::init();
-
-    let Opt {
-        region,
-        bucket,
-        objects,
-        verbose,
-    } = Opt::from_args();
-
-    let region_provider = RegionProviderChain::first_try(region.map(Region::new))
-        .or_default_provider()
-        .or_else(Region::new("us-west-2"));
-
-    println!();
-
-    if verbose {
-        println!("S3 client version: {}", PKG_VERSION);
-        println!(
-            "Region:            {}",
-            region_provider.region().await.unwrap().as_ref()
-        );
-        println!("Bucket:            {}", &bucket);
-        println!("Objects:           {:?}", &objects);
-        println!();
-    }
-
-    let shared_config = aws_config::from_env().region(region_provider).load().await;
-    let client = Client::new(&shared_config);
-
-    remove_objects(&client, &bucket, objects).await
-}
 
 // todo: test
+#[cfg(test)]
+mod test_sdk_aws_s3_delete {
+    use std::env;
+    use super::*;
+    use crate::others::create_file::*;
+    use crate::sdk::aws::s3::*;
+
+    #[actix_web::test]
+    async fn test_put_object() {
+        let file_path = &create_file("sample").unwrap();
+
+        put_object(&env::var("AWS_BUCKET").unwrap(),
+                              file_path,
+                              "test_put_object",
+                              &300
+                            ).await;
+
+        let result = delete_file(&file_path);
+
+        assert_eq!("1".to_owned(), result.unwrap()); 
+    }
+}
