@@ -13,28 +13,26 @@ use aws_sdk_s3::{Client, Error};
 ///  # Returns
 ///  Result<String>: Not defined yet...
 async fn delete_objects(
-    client: &Client,
-    bucket: &str,
-    objects: Vec<String>
+    client:      &Client,
+    bucket_name: &str,
+    key_list:     Vec<String>
 ) -> Result<(), Error> {
-
     // tracing_subscriber::fmt::init();
 
-    let mut delete_objects: Vec<ObjectIdentifier> = vec![];
+    let mut object_id_list: Vec<ObjectIdentifier> = vec![];
 
-    for obj in objects {
-        let obj_id = ObjectIdentifier::builder().set_key(Some(obj)).build();
-        delete_objects.push(obj_id);
+    for key in key_list {
+        let object_id = ObjectIdentifier::builder().set_key(Some(key)).build();
+        object_id_list.push(object_id);
     }
 
-    let delete = Delete::builder().set_objects(Some(delete_objects)).build();
+    let delete = Delete::builder().set_objects(Some(object_id_list)).build();
 
-    client
-        .delete_objects()
-        .bucket(bucket)
-        .delete(delete)
-        .send()
-        .await?;
+    client.delete_objects()
+          .bucket(bucket_name)
+          .delete(delete)
+          .send()
+          .await?;
 
     println!("Objects deleted.");
 
@@ -45,22 +43,35 @@ async fn delete_objects(
 #[cfg(test)]
 mod test_sdk_aws_s3_delete {
     use std::env;
+    use dotenv::dotenv;
     use super::*;
     use crate::others::create_file::*;
     use crate::sdk::aws::s3::*;
 
     #[actix_web::test]
     async fn test_put_object() {
-        let file_path = &create_file("sample").unwrap();
+        dotenv().ok();
+        let client      = &client::get_aws_client().unwrap();
+        let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
+        let file_path   = &create_file("sample").unwrap();
+        let key         = "test_put_object";
+        let expires     = Some(&10);
 
-        put_object(&env::var("AWS_BUCKET").unwrap(),
-                              file_path,
-                              "test_put_object",
-                              &300
-                            ).await;
+        let result = put::put_object(client,
+                                     bucket_name,
+                                     file_path,
+                                     key,
+                                     expires,
+                                    ).await.unwrap();
 
-        let result = delete_file(&file_path);
+        let mut key_list: Vec<String >= vec![];
+        key_list.push(result);
 
-        assert_eq!("1".to_owned(), result.unwrap()); 
+        let result = delete_objects(client,
+                                    bucket_name,
+                                    key_list
+                                  ).await;
+
+        assert_eq!((), result.unwrap()); 
     }
 }
