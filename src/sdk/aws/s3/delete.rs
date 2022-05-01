@@ -3,7 +3,8 @@ use aws_sdk_s3::{Client, Error};
 
 /// Deletes objects from a bucket.
 /// # Arguments
-///
+/// 
+/// * client(&Client)  - AWS client.
 /// * bucket(&str)     - The bucket where the object is uploaded.
 /// * local_path(&str) - The name of the file to upload to the bucket.
 /// * key(&str)        - The name of the file to upload to the bucket.
@@ -39,7 +40,6 @@ async fn delete_objects(
     Ok(())
 }
 
-// todo: test
 #[cfg(test)]
 mod test_sdk_aws_s3_delete {
     use std::env;
@@ -49,28 +49,35 @@ mod test_sdk_aws_s3_delete {
     use crate::sdk::aws::s3::*;
 
     #[actix_web::test]
-    async fn test_put_object() {
+    async fn test_delete_objects() {
         dotenv().ok();
         let client      = &client::get_aws_client().unwrap();
         let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
-        let file_path   = &create_file("sample").unwrap();
-        let key         = "test_put_object";
         let expires     = Some(&10);
+        let mut file_path_list: Vec<String> = vec![];
 
-        let result = put::put_object(client,
-                                     bucket_name,
-                                     file_path,
-                                     key,
-                                     expires,
-                                    ).await.unwrap();
+        let file_name_list: Vec<String> = vec![
+                "sample1".to_owned(),
+                "sample2".to_owned(),
+                "sample3".to_owned()
+            ];
 
-        let mut key_list: Vec<String >= vec![];
-        key_list.push(result);
+        //todo: move this logic into "others::create_file".
+        for file_name in file_name_list {
+            let file_path = create_file(&file_name).unwrap();
+            file_path_list.push(file_path);
+        }
+
+        let key_list = put::put_multiple_objects(client,
+                                                 bucket_name,
+                                                 &file_path_list,
+                                                 expires
+                                                ).await;
 
         let result = delete_objects(client,
                                     bucket_name,
                                     key_list
-                                  ).await;
+                                   ).await;
 
         assert_eq!((), result.unwrap()); 
     }
