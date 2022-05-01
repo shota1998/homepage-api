@@ -11,6 +11,7 @@ actix-rt      = "1.0"
 actix-service = "1.0.6"
 actix-web     = "4.0.1"
 anyhow        = "1.0.57"
+async-trait   = "0.1.53"
 bcrypt        = "0.8.2"
 chrono        = "0.4"
 diesel        = {version = "1.4.4", features = ["postgres"]}
