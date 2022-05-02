@@ -1,10 +1,11 @@
+#![allow(unused)]
+
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 use anyhow::{bail, Result};
 use aws_sdk_s3::presigning::config::PresigningConfig;
 use aws_sdk_s3::types::{ByteStream, DateTime};
 use aws_sdk_s3::Client;
-
 
 /// Adds multiple objects to a bucket.
 /// # Arguments
@@ -123,7 +124,7 @@ mod test_sdk_aws_s3_create {
     use std::env;
     use dotenv::dotenv;
     use super::*;
-    use crate::others::create_file::*;
+    use crate::file::create_file::*;
     use crate::sdk::aws::s3::client;
 
     #[actix_web::test]

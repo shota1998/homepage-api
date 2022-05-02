@@ -19,7 +19,8 @@ mod json_serialization;
 mod routes;
 mod auth;
 mod sdk;
-mod others;
+mod file;
+mod my_regex;
 
 // #[actix_web::main]
 #[actix_rt::main]

@@ -3,7 +3,6 @@ use aws_sdk_s3::{Client, Error};
 
 /// Deletes objects from a bucket.
 /// # Arguments
-/// 
 /// * client(&Client)  - AWS client.
 /// * bucket(&str)     - The bucket where the object is uploaded.
 /// * local_path(&str) - The name of the file to upload to the bucket.
@@ -45,7 +44,7 @@ mod test_sdk_aws_s3_delete {
     use std::env;
     use dotenv::dotenv;
     use super::*;
-    use crate::others::create_file::*;
+    use crate::file::create_file::*;
     use crate::sdk::aws::s3::*;
 
     #[actix_web::test]
