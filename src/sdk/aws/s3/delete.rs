@@ -12,11 +12,11 @@ use aws_sdk_s3::{Client, Error};
 /// 
 ///  # Returns
 ///  Result<String>: Not defined yet...
-async fn delete_objects(
+pub async fn delete_objects(
     client:      &Client,
     bucket_name: &str,
     key_list:     Vec<String>
-) -> Result<(), Error> {
+) -> Result<bool, Error> {
     // tracing_subscriber::fmt::init();
 
     let mut object_id_list: Vec<ObjectIdentifier> = vec![];
@@ -36,7 +36,7 @@ async fn delete_objects(
 
     println!("Objects deleted.");
 
-    Ok(())
+    Ok(true)
 }
 
 #[cfg(test)]
@@ -78,6 +78,6 @@ mod test_sdk_aws_s3_delete {
                                     key_list
                                    ).await;
 
-        assert_eq!((), result.unwrap()); 
+        assert_eq!(true, result.unwrap()); 
     }
 }

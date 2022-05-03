@@ -42,19 +42,6 @@ pub fn extract_object_keys_to_be_deleted(
   return object_keys_to_be_deleted;
 }
 
-// fn extract_object_key(url: &str) -> String {
-//   let regex = Regex::new(r"(/)").unwrap();
-
-//   let mut separated_url: Vec<String> = vec![];
-
-//   // Extract object key.
-//   for object_url in regex.captures_iter(url) {
-//     separated_url.push(String::from(&object_url[0]));
-//   }
-
-//   return object_urls;
-// }
-
 /// Extract s3 object urls from a body using a regular expression.
 /// 
 /// # Arguments

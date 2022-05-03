@@ -3,23 +3,26 @@ use super::path::Path;
 mod create;
 mod get;
 mod edit;
-mod delete;
+mod reflect;
+mod reflesh;
 
 pub fn routes_factory(app: &mut web::ServiceConfig) {
   let base_path: Path = Path{prefix: String::from("/editing_article"), backend: true};
 
   app.route(&base_path.define(String::from("/get_by_id")),
-    web::get().to(get::get_editing_article_by_id));
+    web::get().to(get::get_by_id));
   app.route(&base_path.define(String::from("/get_by_article_id")),
-    web::get().to(get::get_editing_article_by_article_id));
+    web::get().to(get::get_by_article_id));
   app.route(&base_path.define(String::from("/get_all")),
-    web::get().to(get::get_all_editing_articles));
+    web::get().to(get::get_all));
 
   app.route(&base_path.define(String::from("/edit")),
-    web::put().to(edit::edit_editing_article));
-  app.route(&base_path.define(String::from("/reflesh")),
-    web::put().to(edit::reflesh_editing_article));
+    web::put().to(edit::edit));
 
   app.route(&base_path.define(String::from("/reflect")),
-    web::put().to(edit::edit_article));
+    web::put().to(reflect::reflect));
+
+  app.route(&base_path.define(String::from("/reflesh")),
+    web::put().to(reflesh::reflesh));
+
 }
