@@ -22,7 +22,7 @@ use crate::sdk::aws::s3::delete::delete_objects;
 ///  # Returns
 ///  (HttpResponse): Response body.
 // pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>) -> impl Responder {
-  pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>) -> HttpResponse {
+pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>) -> HttpResponse {
   let connection = establish_connection();
 
   // Extract info from json.
@@ -57,6 +57,7 @@ use crate::sdk::aws::s3::delete::delete_objects;
 
   // todo: check whther update was succeaded or not.
 
+  // todo: Split this function.
   // ------------------------------------------
   // Delete S3 objects.
   // ------------------------------------------
@@ -84,4 +85,59 @@ use crate::sdk::aws::s3::delete::delete_objects;
 
   // return editing_article;
   return HttpResponse::Ok().json(editing_article);
+}
+
+#[cfg(test)]
+mod test_routes_edting_article_reflect {
+  use crate::database::establish_connection;
+  use crate::diesel::connection::Connection;
+  use crate::diesel::result::Error;
+  use diesel::prelude::*;
+
+  use crate::schema::articles;
+  use crate::models::article::new_article::NewArticle as Model_NewArticle;
+  use crate::models::article::article::Article        as Model_Article;
+
+  fn hoge(connection: &PgConnection) -> Result<(), Error> {
+    let article_title = articles::table
+                            .select(articles::columns::title)
+                            .filter(articles::columns::title.eq("test"))
+                            .load::<String>(connection)
+                            .unwrap();
+    Ok(())
+  }
+
+  // todo
+  #[test]
+    fn test_rollback() {
+      let connection = establish_connection();
+
+      let title : String = "test".to_owned();
+      let body  : String = "test".to_owned();
+
+      let new_article_model = Model_NewArticle::new(
+                                title.clone(), 
+                                body.clone()
+                              );
+
+      let article_model = diesel::insert_into(articles::table)
+                          .values(&new_article_model)
+                          .get_result::<Model_Article>(&connection)
+                          .unwrap();
+
+      connection.test_transaction::<_, Error, _>(|| {
+        let article_title = articles::table
+                            .select(articles::columns::title)
+                            .filter(articles::columns::title.eq("test"))
+                            .load::<String>(&connection)
+                            .unwrap();
+
+        assert_eq!(vec!["test"], article_title);
+        Ok(())
+      });
+
+      // todo: Imitate this format at palce where exectute this process.
+      connection.test_transaction::<_, Error, _>(||hoge(&connection));
+
+    }
 }
