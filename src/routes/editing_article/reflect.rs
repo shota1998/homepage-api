@@ -1,5 +1,7 @@
-use crate::diesel;
+use diesel;
 use diesel::prelude::*;
+use diesel::result::Error;
+use diesel::connection::TransactionManager;
 use actix_web::{web, HttpResponse};
 use std::env;
 use dotenv::dotenv;
@@ -23,88 +25,143 @@ use crate::sdk::aws::s3::delete::delete_objects;
 ///  (HttpResponse): Response body.
 // pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>) -> impl Responder {
 pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>) -> HttpResponse {
-  let connection = establish_connection();
-
   // Extract info from json.
   let id_ref:    &i32    = &editing_article.id.clone();
   let title_ref: &String = &editing_article.title.clone();
   let body_ref:  &String = &editing_article.body.clone();
 
-  // todo: DRY.
-  // Reflect edits to the editing_article table.
-  let filted_editing_article = editing_articles::table
-                                                .filter(editing_articles::columns::id.eq(&id_ref));
+  // Begin transaction.
+  let c  = establish_connection();
+  let tm = c.transaction_manager();
 
-  let editing_article_model = diesel::update(filted_editing_article)
-                                      .set((
-                                        editing_articles::columns::title.eq(&title_ref),
-                                        editing_articles::columns::body.eq(&body_ref)
-                                      ))
-                                      .get_result::<Model_EditingArticle>(&connection)
-                                      .unwrap();
+  match async {
+    type E = Error;
 
-  // Reflect edits to the article table.
-  let filtered_article = articles::table
-                        .filter(articles::columns::id.eq(editing_article_model.article_id));
+    tm.begin_transaction(&c)?;
 
-  let article_model  = diesel::update(filtered_article)
-                      .set((
+    // Reflect edits to the editing_article table.
+    let filtered_editing_article = editing_articles::table
+                                   .filter(editing_articles::columns::id.eq(&id_ref));
+
+    let editing_article_model = diesel::update(filtered_editing_article)
+                                .set((
+                                  editing_articles::columns::title.eq(&title_ref),
+                                  editing_articles::columns::body .eq(&body_ref)
+                                ))
+                                .get_result::<Model_EditingArticle>(&c)
+                                .unwrap();
+
+    // Reflect edits to the article table.
+    let filtered_article = articles::table
+                           .filter(articles::columns::id.eq(editing_article_model.article_id));
+
+    let article_model = diesel::update(filtered_article)
+                        .set((
                         articles::columns::title.eq(&title_ref),
                         articles::columns::body.eq(&body_ref)
-                      ))
-                      .get_result::<Model_Article>(&connection)
-                      .unwrap();
+                        ))
+                        .get_result::<Model_Article>(&c)
+                        .unwrap();
 
-  // todo: check whther update was succeaded or not.
+    // todo: move this to trait.
+    let editing_article = EditingArticle::new(
+                            editing_article_model.id.clone(),
+                            editing_article_model.article_id.clone(),
+                            editing_article_model.title.clone(),
+                            editing_article_model.body.clone()
+                          );
 
-  // todo: Split this function.
-  // ------------------------------------------
-  // Delete S3 objects.
-  // ------------------------------------------
-  dotenv().ok();
+    // Delete S3 objects.
+    dotenv().ok();
 
-  let aws_client  = &get_aws_client().unwrap();
-  let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
-  let object_keys_to_be_deleted: Vec<String> = 
-    extract_object_keys_to_be_deleted(&article_model.body, &editing_article_model.body);
+    let aws_client  = &get_aws_client().unwrap();
+    let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
+    let object_keys_to_be_deleted: Vec<String> = 
+          extract_object_keys_to_be_deleted(&article_model.body, &editing_article_model.body);
 
-  let delete_succeeded = delete_objects(aws_client, 
-                                        bucket_name, 
-                                        object_keys_to_be_deleted
-                                       ).await.unwrap();
+    delete_objects(
+        aws_client, 
+        bucket_name, 
+        object_keys_to_be_deleted
+      ).await?;
 
-  if delete_succeeded != true {
-    return HttpResponse::InternalServerError().await.unwrap();
+    Ok::<EditingArticle, E>(editing_article)
   }
+  .await
+  {
+    Ok(editing_article) => match tm.commit_transaction(&c){
+        Ok(_)  => return HttpResponse::Ok().json(editing_article),
+        Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
+      },
+    Err(_) => match tm.rollback_transaction(&c) {
+        Ok(_)  => return HttpResponse::InternalServerError().await.unwrap(),
+        Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
+      },
+  };
 
-                 
-  let editing_article = EditingArticle::new(editing_article_model.id.clone(),
-                                            editing_article_model.article_id.clone(),
-                                            editing_article_model.title.clone(),
-                                            editing_article_model.body.clone());
+  // // Reflect edits to the editing_article table.
+  // let filtered_editing_article = editing_articles::table
+  //                               .filter(editing_articles::columns::id.eq(&id_ref));
 
-  // return editing_article;
-  return HttpResponse::Ok().json(editing_article);
+  // let editing_article_model = diesel::update(filtered_editing_article)
+  //                             .set((
+  //                               editing_articles::columns::title.eq(&title_ref),
+  //                               editing_articles::columns::body .eq(&body_ref)
+  //                             ))
+  //                             .get_result::<Model_EditingArticle>(&c)
+  //                             .unwrap();
+
+  // // Reflect edits to the article table.
+  // let filtered_article = articles::table
+  //                       .filter(articles::columns::id.eq(editing_article_model.article_id));
+
+  // let article_model = diesel::update(filtered_article)
+  //                   .set((
+  //                     articles::columns::title.eq(&title_ref),
+  //                     articles::columns::body.eq(&body_ref)
+  //                   ))
+  //                   .get_result::<Model_Article>(&c)
+  //                   .unwrap();
+
+  // // todo: move this to trait.
+  // let editing_article = EditingArticle::new(editing_article_model.id.clone(),
+  //                         editing_article_model.article_id.clone(),
+  //                         editing_article_model.title.clone(),
+  //                         editing_article_model.body.clone());
+
+  // // Delete S3 objects.
+  // dotenv().ok();
+  
+  // let aws_client  = &get_aws_client().unwrap();
+  // let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
+  // let object_keys_to_be_deleted: Vec<String> = 
+  //   extract_object_keys_to_be_deleted(&article_model.body, &editing_article_model.body);
+
+  
+  // let delete_succeeded = delete_objects(
+  //                             aws_client, 
+  //                             bucket_name, 
+  //                             object_keys_to_be_deleted
+  //                         ).await.unwrap();
 }
 
 #[cfg(test)]
 mod test_routes_edting_article_reflect {
-  use crate::database::establish_connection;
-  use crate::diesel::connection::Connection;
-  use crate::diesel::result::Error;
+  use diesel::connection::Connection;
+  use diesel::result::Error;
   use diesel::prelude::*;
-
+  use crate::database::establish_connection;
   use crate::schema::articles;
   use crate::models::article::new_article::NewArticle as Model_NewArticle;
   use crate::models::article::article::Article        as Model_Article;
 
-  fn hoge(connection: &PgConnection) -> Result<(), Error> {
+  fn hoge(connection: &PgConnection) -> Result<Vec<String>, Error> {
     let article_title = articles::table
                             .select(articles::columns::title)
                             .filter(articles::columns::title.eq("test"))
                             .load::<String>(connection)
                             .unwrap();
-    Ok(())
+    Ok(article_title)
   }
 
   // todo
@@ -112,20 +169,20 @@ mod test_routes_edting_article_reflect {
     fn test_rollback() {
       let connection = establish_connection();
 
-      let title : String = "test".to_owned();
-      let body  : String = "test".to_owned();
-
-      let new_article_model = Model_NewArticle::new(
-                                title.clone(), 
-                                body.clone()
-                              );
-
-      let article_model = diesel::insert_into(articles::table)
-                          .values(&new_article_model)
-                          .get_result::<Model_Article>(&connection)
-                          .unwrap();
-
       connection.test_transaction::<_, Error, _>(|| {
+        let title : String = "test".to_owned();
+        let body  : String = "test".to_owned();
+
+        let new_article_model = Model_NewArticle::new(
+                                  title.clone(), 
+                                  body.clone()
+                                );
+
+        let article_model = diesel::insert_into(articles::table)
+                            .values(&new_article_model)
+                            .get_result::<Model_Article>(&connection)
+                            .unwrap();
+
         let article_title = articles::table
                             .select(articles::columns::title)
                             .filter(articles::columns::title.eq("test"))
@@ -135,9 +192,5 @@ mod test_routes_edting_article_reflect {
         assert_eq!(vec!["test"], article_title);
         Ok(())
       });
-
-      // todo: Imitate this format at palce where exectute this process.
-      connection.test_transaction::<_, Error, _>(||hoge(&connection));
-
     }
 }
