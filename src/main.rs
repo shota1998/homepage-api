@@ -54,7 +54,8 @@ async fn main() -> std::io::Result<()> {
                         Ok(_token) => {passed = true;},
                         Err(_message) => {passed = false;}
                     };
-                } else {
+                }
+                else {
                     passed = true;
                 }
 
