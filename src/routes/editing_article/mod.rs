@@ -1,5 +1,6 @@
 use actix_web::web;
 use super::path::Path;
+use super::transaction;
 mod create;
 mod get;
 mod edit;
@@ -25,4 +26,18 @@ pub fn routes_factory(app: &mut web::ServiceConfig) {
   app.route(&base_path.define(String::from("/reflesh")),
     web::put().to(reflesh::reflesh));
 
+
+  // app.route(&base_path.define(String::from("/reflesh")),
+  //   put_through_middleware(reflesh::reflesh));
+
 }
+
+// pub fn put_through_middleware(func: T) -> HttpResponse{
+//      where T -> Restule<S, String>
+//            S impl Serialize
+//   // transaction begin
+//   match func() {
+//     //commit
+//     //rollbacke 
+//   }
+// }
