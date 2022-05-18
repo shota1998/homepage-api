@@ -1,9 +1,8 @@
 use actix_web::web;
 
 mod path;
-mod article;
+pub mod article;
 mod editing_article;
-mod transaction;
 
 /// This function combines the views from other view modules.
 ///
