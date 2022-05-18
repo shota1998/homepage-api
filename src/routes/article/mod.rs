@@ -1,6 +1,6 @@
 use actix_web::web;
 use super::path::Path;
-mod create;
+pub mod create;
 mod get;
 mod delete;
 

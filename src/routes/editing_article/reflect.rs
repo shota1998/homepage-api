@@ -89,7 +89,7 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
   // ---------------------
   // Delete S3 objects.
   // ---------------------
-  // 2022/05/10 22:50
+  // todo: 2022/05/10 22:50
   // I don't know how to handle different types of errors at the same time.
   // Instead, handle different types of errors separately.
   match async {
@@ -167,7 +167,8 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
 }
 
 #[cfg(test)]
-mod test_routes_edting_article_reflect {
+mod routes_edting_article_reflect {
+  use super::*;
   use diesel::connection::Connection;
   use diesel::connection::TransactionManager;
   use diesel::result::Error;
@@ -176,56 +177,81 @@ mod test_routes_edting_article_reflect {
   use crate::schema::articles;
   use crate::models::article::new_article::NewArticle as Model_NewArticle;
   use crate::models::article::article::Article        as Model_Article;
+  use crate::routes::article::create::create;
 
-  fn hoge(connection: &PgConnection) -> Result<Vec<String>, Error> {
-    let article_title = articles::table
-                            .select(articles::columns::title)
-                            .filter(articles::columns::title.eq("test"))
-                            .load::<String>(connection)
-                            .unwrap();
-    Ok(article_title)
+  fn create_editing_article_without_article_id() {
+
   }
 
-  // todo
-  #[test]
-    fn test_rollback() {
-      let connection = establish_connection();
+  #[actix_web::test]
+  async fn test_reflect() {
+    let connection = establish_connection();
 
-      connection.test_transaction::<_, Error, _>(|| {
-        //todo
-        let c  = establish_connection();
-        let tm = c.transaction_manager();
-        tm.begin_transaction(&c)?;
-
-        let title : String = "test".to_owned();
-        let body  : String = "test".to_owned();
-
-        let new_article_model = Model_NewArticle::new(
-                                  title.clone(), 
-                                  body.clone()
-                                );
-
-        let article_model = diesel::insert_into(articles::table)
-                            .values(&new_article_model)
-                            .get_result::<Model_Article>(&connection)
-                            .unwrap();
-
-        let article_title = articles::table
-                            .select(articles::columns::title)
-                            .filter(articles::columns::title.eq("test"))
-                            .load::<String>(&connection)
-                            .unwrap();
-
-        assert_eq!(vec!["test"], article_title);
-
-        //todo
-        tm.commit_transaction(&c)?;
-
-        Ok(())
-      });
-
+    connection.test_transaction::<_, Error, _>(|| {
       //todo
-      // assert_eq!(vec!["test"], hoge(&connection));
-      assert_eq!(true, true);
-    }
+      // Mock delte_object()
+      //   1: return true
+      //   2: return panic
+
+      create();
+      edit();
+      
+      let result = reflect(editing_article: web::Json<EditingArticleWithoutArticleId>);
+
+      let article         = get_article();
+      let editing_article = get_editing_article();
+
+      assert_eq!(article, editing_article);
+      assert_eq!(result, editing_article);
+      Ok(())
+    });
+  }
+
+  // fn hoge(connection: &PgConnection) -> Result<Vec<String>, Error> {
+  //   let article_title = articles::table
+  //                           .select(articles::columns::title)
+  //                           .filter(articles::columns::title.eq("test"))
+  //                           .load::<String>(connection)
+  //                           .unwrap();
+  //   Ok(article_title)
+  // }
+
+  // #[test]
+  // fn rollback() {
+  //   let connection = establish_connection();
+
+  //   connection.test_transaction::<_, Error, _>(|| {
+  //     //todo
+  //     let c  = establish_connection();
+  //     let tm = c.transaction_manager();
+  //     tm.begin_transaction(&c)?;
+
+  //     let title : String = "test".to_owned();
+  //     let body  : String = "test".to_owned();
+
+  //     let new_article_model = Model_NewArticle::new(
+  //                               title.clone(), 
+  //                               body.clone()
+  //                             );
+
+  //     diesel::insert_into(articles::table)
+  //       .values(&new_article_model)
+  //       .get_result::<Model_Article>(&connection)
+  //       .unwrap();
+
+  //     let article_title = articles::table
+  //                         .select(articles::columns::title)
+  //                         .filter(articles::columns::title.eq("test"))
+  //                         .load::<String>(&connection)
+  //                         .unwrap();
+
+  //     assert_eq!(vec!["test"], article_title);
+
+  //     tm.commit_transaction(&c)?;
+
+  //     Ok(())
+  //   });
+
+  //   assert_eq!(vec!["test"], hoge(&connection).unwrap());
+  // }
 }
