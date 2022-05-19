@@ -2,7 +2,7 @@ use actix_web::web;
 
 mod path;
 pub mod article;
-mod editing_article;
+pub mod editing_article;
 
 /// This function combines the views from other view modules.
 ///

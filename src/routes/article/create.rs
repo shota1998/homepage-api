@@ -1,6 +1,6 @@
 use crate::diesel;
 use diesel::prelude::*;
-use actix_web::{web, Responder};
+use actix_web::{web, HttpResponse};
 
 use crate::database::establish_connection;
 use crate::json_serialization::new_article::NewArticle;
@@ -12,6 +12,7 @@ use crate::models::article::editing_article::EditingArticle        as Model_Edit
 use crate::schema::articles;
 use crate::schema::editing_articles;
 
+// todo: split this in to logic and controlloer. check arcitecure pattern for actic web.
 /// This creates an article and saves it to DB.
 ///
 /// # Arguments
@@ -19,7 +20,7 @@ use crate::schema::editing_articles;
 /// 
 /// # Returns
 /// * (impl Responder): message to be sent back to the user. 
-pub async fn create(new_article: web::Json<NewArticle>) -> impl Responder {
+pub async fn create(new_article: web::Json<NewArticle>) -> HttpResponse {
   let connection = establish_connection();
 
   let title : String = new_article.title.clone();
@@ -39,6 +40,7 @@ pub async fn create(new_article: web::Json<NewArticle>) -> impl Responder {
                              article_model.body.clone());
   
   // Create article for edit.
+  // ::new_by_model(article_model)
   let editing_article_model = Model_NewEditingArticle::new(article.id, 
                                                            title.clone(), 
                                                            body.clone());
@@ -48,10 +50,11 @@ pub async fn create(new_article: web::Json<NewArticle>) -> impl Responder {
                                      .get_result::<Model_EditingArticle>(&connection);
 
   // todo : Detect whether eiditing article was created or not.
-  // match insert_result_editing {
-  //   Ok(_)  => HttpResponse::Created().await.unwrap(),
-  //   Err(_) => HttpResponse::Conflict().await.unwrap()
-  // };
+  // todo: rollback
+  match insert_result_editing {
+    Ok(_)  => HttpResponse::Ok().json(article),
+    Err(_) => HttpResponse::Conflict().await.unwrap()
+  }
 
-  return article;
+  // return article;
 }

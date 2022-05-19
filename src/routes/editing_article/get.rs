@@ -9,6 +9,7 @@ use crate::json_serialization::editing_articles::EditingArticles;
 use crate::json_serialization::editing_article::EditingArticle;
 use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
 
+// todo: create request body file.
 #[derive(Deserialize)]
 pub struct RequestBody {
     id: i32,
