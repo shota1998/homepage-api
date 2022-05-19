@@ -45,6 +45,7 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
   match async {
     tm.begin_transaction(&c)?;
 
+    // todo: replace this with editing_article::edit
     // Reflect edits to the editing_article table.
     let filtered_editing_article = editing_articles::table
                                    .filter(editing_articles::columns::id.eq(&id_ref));
@@ -56,6 +57,7 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
                               ))
                               .get_result::<Model_EditingArticle>(&c)?;
 
+    // todo: replace this with article::edit
     // Reflect edits to the article table.
     let filtered_article = articles::table
                            .filter(articles::columns::id.eq(editing_article_model.article_id));
@@ -67,7 +69,7 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
                       ))
                       .get_result::<Model_Article>(&c)?;
 
-    // todo: move this to trait.
+    // todo: EditingArticle::new(editing_article_model)
     editing_article = EditingArticle::new(
                         editing_article_model.id.clone(),
                         editing_article_model.article_id.clone(),
@@ -169,6 +171,7 @@ pub async fn reflect(editing_article: web::Json<EditingArticleWithoutArticleId>)
 #[cfg(test)]
 mod routes_edting_article_reflect {
   use super::*;
+  use actix_web::{web, Responder};
   use diesel::connection::Connection;
   use diesel::connection::TransactionManager;
   use diesel::result::Error;
@@ -179,32 +182,36 @@ mod routes_edting_article_reflect {
   use crate::models::article::article::Article        as Model_Article;
   use crate::routes::article::create::create;
 
-  fn create_editing_article_without_article_id() {
-
-  }
+  use crate::routes::editing_article::get::RequestBody;
+  use crate::json_serialization::new_article::NewArticle;
+  use crate::json_serialization::article::Article;
 
   #[actix_web::test]
   async fn test_reflect() {
     let connection = establish_connection();
 
-    connection.test_transaction::<_, Error, _>(|| {
       //todo
       // Mock delte_object()
       //   1: return true
       //   2: return panic
 
-      create();
-      edit();
-      
-      let result = reflect(editing_article: web::Json<EditingArticleWithoutArticleId>);
+      // todo: create and use test db.
+      let article = NewArticle::new("test title".to_owned(), "test body".to_owned());
 
-      let article         = get_article();
-      let editing_article = get_editing_article();
+      let create_article_response: HttpResponse = create(web::Json(article)).await;
 
-      assert_eq!(article, editing_article);
-      assert_eq!(result, editing_article);
-      Ok(())
-    });
+      let expected_editing_article = get_edit(
+          RequestBody{id: create_article_response.}
+        );
+
+      let reflected_editing_article = reflect(expected_editing_article);
+
+      let actual_article         = get_article();
+      let actual_editing_article = get_editing_article();
+
+      assert_eq!(reflected_editing_article, expected_editing_article);
+      assert_eq!(actual_article,            expected_editing_article);
+      assert_eq!(actual_editing_article,    expected_editing_article);
   }
 
   // fn hoge(connection: &PgConnection) -> Result<Vec<String>, Error> {

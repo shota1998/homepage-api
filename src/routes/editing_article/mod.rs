@@ -1,7 +1,6 @@
 use actix_web::web;
 use super::path::Path;
-mod create;
-mod get;
+pub mod get;
 mod edit;
 mod reflect;
 mod reflesh;
