@@ -21,6 +21,8 @@ mod auth;
 mod sdk;
 mod file;
 mod my_regex;
+mod controller;
+mod logic;
 
 // #[actix_web::main]
 #[actix_rt::main]
@@ -82,6 +84,7 @@ async fn main() -> std::io::Result<()> {
             .configure(routes::routes_factory);
         return app
     })
+    // todo: use enviroment variables.
     // .bind("127.0.0.1:8000")?
     .bind("0.0.0.0:8001")?
     .run()
