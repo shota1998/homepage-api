@@ -186,33 +186,33 @@ mod routes_edting_article_reflect {
   use crate::json_serialization::new_article::NewArticle;
   use crate::json_serialization::article::Article;
 
-  #[actix_web::test]
-  async fn test_reflect() {
-    let connection = establish_connection();
+  // #[actix_web::test]
+  // async fn test_reflect() {
+  //   let connection = establish_connection();
 
-      //todo
-      // Mock delte_object()
-      //   1: return true
-      //   2: return panic
+  //     //todo
+  //     // Mock delte_object()
+  //     //   1: return true
+  //     //   2: return panic
 
-      // todo: create and use test db.
-      let article = NewArticle::new("test title".to_owned(), "test body".to_owned());
+  //     // todo: create and use test db.
+  //     let article = NewArticle::new("test title".to_owned(), "test body".to_owned());
 
-      let create_article_response: HttpResponse = create(web::Json(article)).await;
+  //     let create_article_response: HttpResponse = create(web::Json(article)).await;
 
-      let expected_editing_article = get_edit(
-          RequestBody{id: create_article_response.}
-        );
+  //     let expected_editing_article = get_edit(
+  //         RequestBody{id: create_article_response.}
+  //       );
 
-      let reflected_editing_article = reflect(expected_editing_article);
+  //     let reflected_editing_article = reflect(expected_editing_article);
 
-      let actual_article         = get_article();
-      let actual_editing_article = get_editing_article();
+  //     let actual_article         = get_article();
+  //     let actual_editing_article = get_editing_article();
 
-      assert_eq!(reflected_editing_article, expected_editing_article);
-      assert_eq!(actual_article,            expected_editing_article);
-      assert_eq!(actual_editing_article,    expected_editing_article);
-  }
+  //     assert_eq!(reflected_editing_article, expected_editing_article);
+  //     assert_eq!(actual_article,            expected_editing_article);
+  //     assert_eq!(actual_editing_article,    expected_editing_article);
+  // }
 
   // fn hoge(connection: &PgConnection) -> Result<Vec<String>, Error> {
   //   let article_title = articles::table
