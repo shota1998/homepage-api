@@ -1,6 +1,7 @@
 use crate::schema::articles;
 
 #[derive(Insertable)]
+#[derive(Clone)]
 #[table_name="articles"]
 pub struct NewArticle {
   pub title : String,

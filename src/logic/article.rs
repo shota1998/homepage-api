@@ -49,29 +49,38 @@ pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Articl
 #[cfg(test)]
 mod logic_article {
   use super::*;
-  use diesel::result::Error;
+  use diesel::pg::PgConnection;
   use crate::database::establish_connection;
   use crate::models::article::{
     new_article::NewArticle,
     article::Article,
-    editing_article::EditingArticle
+    // editing_article::EditingArticle
   };
+
+  // todo: move to test_utiliry/database.rs
+  fn establish_test_connection() -> PgConnection {
+    let c = establish_connection();
+
+    match c.begin_test_transaction() {
+      Ok(_)  => c,
+      Err(_) => panic!()
+    }
+  }
 
   fn create_new_article_model() -> NewArticle {
     NewArticle::new("test title".to_owned(), "test body".to_owned())
   }
 
+  //todo: original assert function.
   #[actix_web::test]
   async fn test_create() {
-    let c = establish_connection();
+    let c = establish_test_connection();
 
-    c.test_transaction::<_, Error, _>(|| {
-      let model   = create_new_article_model();
-      let article = create(model, &c).await;
-      
-      assert_eq!(model, article);
-      Ok(())
-    })
+    let new_article_model: NewArticle = create_new_article_model();
+    let article_model:     Article    = create(new_article_model.clone(), &c).await;
+    
+    assert_eq!(new_article_model.title, article_model.title);
+    assert_eq!(new_article_model.body, article_model.body);
   }
 
   // #[actix_web::test]
