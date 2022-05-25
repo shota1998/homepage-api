@@ -54,7 +54,7 @@ mod logic_article {
   use crate::models::article::{
     new_article::NewArticle,
     article::Article,
-    // editing_article::EditingArticle
+    editing_article::EditingArticle
   };
 
   // todo: move to test_utiliry/database.rs
@@ -71,6 +71,10 @@ mod logic_article {
     NewArticle::new("test title".to_owned(), "test body".to_owned())
   }
 
+  fn create_editing_article_model(article_id: i32) -> EditingArticle {
+    EditingArticle::new(1, article_id,"test title".to_owned(), "test body".to_owned())
+  }
+
   //todo: original assert function.
   #[actix_web::test]
   async fn test_create() {
@@ -80,23 +84,20 @@ mod logic_article {
     let article_model:     Article    = create(new_article_model.clone(), &c).await;
     
     assert_eq!(new_article_model.title, article_model.title);
-    assert_eq!(new_article_model.body, article_model.body);
+    assert_eq!(new_article_model.body,  article_model.body);
   }
 
-  // #[actix_web::test]
-  // async fn test_update() {
-  //   let c = establish_connection();
+  #[actix_web::test]
+  async fn test_update() {
+    let c = establish_test_connection();
 
-  //   c.test_transaction::<_, Error, _>(|| {
-  //     // todo: create article
-  //     // todo: update editing_article, but use mock.
-  //     // todo: get editing_article
-  //     let editing_article = editing_article::get(editing_article_id);
-      
-  //     update(editing_article, &c);
+    let new_article_model: NewArticle = create_new_article_model();
+    let article_model:     Article    = create(new_article_model.clone(), &c).await;
 
-  //     assert_eq!(true, true);
-  //     Ok(())
-  //   })
-  // }
+    let editing_article_model: EditingArticle = create_editing_article_model(article_model.id.clone());
+    let updated_article_model: Article        = update(editing_article_model.clone(), &c).await;
+
+    assert_eq!(editing_article_model.title, updated_article_model.title);
+    assert_eq!(editing_article_model.body,  updated_article_model.body);
+  }
 }
