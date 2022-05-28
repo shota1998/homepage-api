@@ -1,6 +1,7 @@
 use crate::schema::editing_articles;
 
 #[derive(Insertable)]
+#[derive(Clone)]
 #[table_name="editing_articles"]
 pub struct NewEditingArticle {
   pub article_id : i32,
