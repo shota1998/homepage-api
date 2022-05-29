@@ -32,35 +32,37 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
   {
     //todo: write error messages as constant value which enable us know where and how error occured.
     Ok(_) => match tm.commit_transaction(&c){
+        // Reflect succeeded.
         Ok(_)  => return HttpResponse::Ok().json(editing_article_json),
+        // Migration failed.
         Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
       },
     Err(_) => match tm.rollback_transaction(&c) {
+        // Reflect failed.
         Ok(_)  => return HttpResponse::InternalServerError().await.unwrap(),
+        // Migration failed.
         Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
       },
   }
 }
 
 #[cfg(test)]
-mod controller_edting_article_reflect {
+mod controller_edting_article {
   use super::*;
-  // todo: move establish_test_connection to here.
-  // use crate::test::utilts;
+  use crate::constants;
+  use crate::test_utils::{database::establish_test_connection};
 
-  // #[actix_web::test]
-  // async fn test_reflect() {
-  //   let c = establish_test_connection();    
+  #[actix_web::test]
+  async fn test_reflect() {
+    let c = establish_test_connection();    
 
-  //   let editing_article = EditingArticle::new();
-  //   // todo: use http request.
-  //   let reflected_editing_article = http::request(reflect(editing_article));
-  //   let article = Article::get(editing_article.article_id);
+    //todo: get latest editing article.
+    let editing_article_model = get_latest_editing_article();
+    //todo: create editing article json
+    let editing_article_json = editing_article::new_by_model(editing_article_model);
+    //todo: reflect()
+    let result = reflect(editing_article_json);
 
-  //   // todo: move these test to a function. Then use three times.
-  //   assert_eq!(editing_article.article_id, article.id);
-  //   assert_eq!(editing_article.title,      article.title);
-  //   assert_eq!(editing_article.body,       article.body);
-  //   // todo: add test.
-  // }
+    assert_eq!(result.getcontent(), constants::MIGRATION_FAILED)
+  }
 }
