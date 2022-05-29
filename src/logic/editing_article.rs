@@ -1,6 +1,7 @@
 use crate::diesel;
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
+use diesel::result::Error;
 use crate::schema::editing_articles;
 use crate::models::article::{
   new_editing_article::NewEditingArticle,
@@ -31,7 +32,7 @@ pub async fn create(new_editing_article: NewEditingArticle, c: &PgConnection) ->
 /// 
 ///  # Returns
 ///  (EditingArticle): EditingArticle model.
-pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> EditingArticle {
+pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Result<EditingArticle, Error> {
   
   let filted_editing_article = editing_articles::table
                               .filter(editing_articles::columns::id.eq(
@@ -44,7 +45,6 @@ pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Editin
            editing_articles::columns::body.eq(&editing_article.body)
          ))
          .get_result::<EditingArticle>(c)
-         .unwrap()
 }
 
 #[cfg(test)]
@@ -104,7 +104,7 @@ mod logic_editing_article {
     let mut editing_article_model = create(new_editing_article_model.clone(), &c).await;
     editing_article_model.title = "edited test title".to_owned();
     
-    let updated_editing_article_model: EditingArticle = update(editing_article_model.clone(), &c).await;
+    let updated_editing_article_model: EditingArticle = update(editing_article_model.clone(), &c).await.unwrap();
 
     assert_eq!(editing_article_model.title, updated_editing_article_model.title);
     assert_eq!(editing_article_model.body,  updated_editing_article_model.body);

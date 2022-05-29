@@ -1,6 +1,7 @@
 use crate::diesel;
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
+use diesel::result::Error;
 use crate::schema::articles;
 use crate::models::article::{
   new_article::NewArticle,
@@ -30,7 +31,7 @@ pub async fn create(new_article: NewArticle, c: &PgConnection) -> Article {
 /// 
 ///  # Returns
 ///  (Responder): Content of Article.
-pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Article {
+pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Result<Article, Error> {
   
   let filtered_article = articles::table
                          .filter(articles::columns::id.eq(
@@ -43,7 +44,6 @@ pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Articl
            articles::columns::body.eq(&editing_article.body.clone())
          ))
          .get_result::<Article>(c)
-         .unwrap()
 }
 
 #[cfg(test)]
@@ -95,7 +95,7 @@ mod logic_article {
     let article_model:     Article    = create(new_article_model.clone(), &c).await;
 
     let editing_article_model: EditingArticle = create_editing_article_model(article_model.id.clone());
-    let updated_article_model: Article        = update(editing_article_model.clone(), &c).await;
+    let updated_article_model: Article        = update(editing_article_model.clone(), &c).await.unwrap();
 
     assert_eq!(editing_article_model.title, updated_article_model.title);
     assert_eq!(editing_article_model.body,  updated_article_model.body);
