@@ -23,6 +23,8 @@ mod file;
 mod my_regex;
 mod controller;
 mod logic;
+mod constants;
+mod test_utils;
 
 // #[actix_web::main]
 #[actix_rt::main]

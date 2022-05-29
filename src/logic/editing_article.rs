@@ -82,7 +82,7 @@ mod logic_editing_article {
     let c = establish_test_connection();
     // todo: move test/create_article
     let new_article_model = create_new_article_model();
-    let article_model     = article::create(new_article_model, &c).await;
+    let article_model     = article::create(new_article_model, &c).await.unwrap();
     // todo: move test/create_editing_article
     let new_editing_article_model = create_new_editing_article_model(article_model.id);
     let editing_article_model     = create(new_editing_article_model.clone(), &c).await;
@@ -97,7 +97,7 @@ mod logic_editing_article {
     
     // todo: move test/create_article
     let new_article_model = create_new_article_model();
-    let article_model     = article::create(new_article_model, &c).await;
+    let article_model     = article::create(new_article_model, &c).await.unwrap();
 
     // todo: move test/create_editing_article
     let new_editing_article_model = create_new_editing_article_model(article_model.id);

@@ -12,25 +12,26 @@ use crate::models::article::{
 /// Creates an article.
 ///
 /// # Arguments
-/// * req(HttpRequest): the HTTP request passed into the view
+/// * new_article(NewArticle): A new article model.
+/// * c(&PgConnection): Connection with postgress.
 /// 
 /// # Returns
-/// * (impl Responder): message to be sent back to the user. 
-pub async fn create(new_article: NewArticle, c: &PgConnection) -> Article {
+/// * (Result<Article, Error>): An artcle model. 
+pub async fn create(new_article: NewArticle, c: &PgConnection) -> Result<Article, Error> {
 
   diesel::insert_into(articles::table)
          .values(&new_article)
          .get_result::<Article>(c)
-         .unwrap()
 }
 
 /// Update an article.
 /// 
 /// # Arguments
-/// * editing_article (web::Json<EditingArticleWithoutArticleId>): This serialize the JSON body.
+/// * editing_article(EditingArticle): An editing article model.
+/// * c(&PgConnection): Connection with postgress.
 /// 
-///  # Returns
-///  (Responder): Content of Article.
+/// # Returns
+/// * (Result<Article, Error>): An artcle model. 
 pub async fn update(editing_article: EditingArticle, c: &PgConnection) -> Result<Article, Error> {
   
   let filtered_article = articles::table
@@ -81,7 +82,7 @@ mod logic_article {
     let c = establish_test_connection();
 
     let new_article_model: NewArticle = create_new_article_model();
-    let article_model:     Article    = create(new_article_model.clone(), &c).await;
+    let article_model:     Article    = create(new_article_model.clone(), &c).await.unwrap();
     
     assert_eq!(new_article_model.title, article_model.title);
     assert_eq!(new_article_model.body,  article_model.body);
@@ -92,7 +93,7 @@ mod logic_article {
     let c = establish_test_connection();
 
     let new_article_model: NewArticle = create_new_article_model();
-    let article_model:     Article    = create(new_article_model.clone(), &c).await;
+    let article_model:     Article    = create(new_article_model.clone(), &c).await.unwrap();
 
     let editing_article_model: EditingArticle = create_editing_article_model(article_model.id.clone());
     let updated_article_model: Article        = update(editing_article_model.clone(), &c).await.unwrap();
