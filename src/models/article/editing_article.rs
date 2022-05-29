@@ -33,7 +33,7 @@ impl EditingArticle {
   }
 
   // todo: move to trait with new()
-  pub fn new_by_json(editing_article_model: web::Json<Serial_EditingArticle>) -> EditingArticle {
+  pub fn new_by_json(editing_article_model: &web::Json<Serial_EditingArticle>) -> EditingArticle {
     return EditingArticle {
       id:         editing_article_model.id.clone(),
       article_id: editing_article_model.article_id.clone(),

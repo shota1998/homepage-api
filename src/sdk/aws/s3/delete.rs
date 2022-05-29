@@ -16,7 +16,7 @@ pub async fn delete_objects(
     client:      &Client,
     bucket_name: &str,
     key_list:     Vec<String>
-) -> Result<bool, Error> {
+) -> Result<(), Error> {
     // tracing_subscriber::fmt::init();
 
     let mut object_id_list: Vec<ObjectIdentifier> = vec![];
@@ -36,7 +36,7 @@ pub async fn delete_objects(
 
     println!("Objects deleted.");
 
-    Ok(true)
+    Ok(())
 }
 
 #[cfg(test)]

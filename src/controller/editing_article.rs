@@ -1,81 +1,45 @@
-use diesel::{prelude::*, result::Error, connection::TransactionManager};
+use diesel::{prelude::*, connection::TransactionManager};
 use actix_web::{web, HttpResponse};
 use std::env;
 use dotenv::dotenv;
-use aws_sdk_s3::Error as S3Error;
 use crate::database::establish_connection;
 use crate::my_regex::s3::extract_object_keys_to_be_deleted;
 use crate::sdk::aws::s3::{client::get_aws_client, delete::delete_objects};
 use crate::logic::{article, editing_article};
 use crate::json_serialization::editing_article::EditingArticle;
-use crate::models::article::{
-  article::Article as Model_Article,
-  editing_article::EditingArticle as Model_EditingArticle
-};
+use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
 
-// todo: split to each function.
-// 1: reflect editing article to article
-// 2: delete object from reflected article
-// 3: crate helper which does error handling
-//    hoge (f: fn) {
-//       match f {
-//           ....
-//        }
-//     }
-pub async fn reflect(editing_article: web::Json<EditingArticle>) -> HttpResponse {
+pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpResponse {
+  dotenv().ok();
   let c  = establish_connection();
   let tm = c.transaction_manager();
-  let mut article_model         = Model_Article::new();
-  let mut editing_article_model = Model_EditingArticle::new_by_json(editing_article);
 
-  // Reflect an editing article to an article.
   match async {
-    // todo: return result instead of article/editing article.
-    article_model         = article::update(editing_article_model.clone(), &c);
-    editing_article_model = editing_article::update(editing_article_model.clone(), &c).await;
-    Ok::<_, Error>(())
-  }
-  .await
-  {
-    Ok(_)  => (),
-    Err(_) => match tm.rollback_transaction(&c) {
-        Ok(_)  => return HttpResponse::InternalServerError().await.unwrap(),
-        Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
-      },
-  };
+    // Reflect an editing article to an article.
+    let editing_article_model = Model_EditingArticle::new_by_json(&editing_article_json);
+    let article_model = article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
+                        editing_article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
 
-  // Delete S3 objects.
-  // todo: 2022/05/10 22:50
-  // I don't know how to handle different types of errors at the same time.
-  // Instead, handle different types of errors separately.
-  match async {
-    dotenv().ok();
-
+    // Delete objects which are no longer used in reflected article.
     let aws_client  = &get_aws_client().unwrap();
     let bucket_name = &env::var("AWS_BUCKET").expect("Missing AWS_BUCKET");
     let object_keys_to_be_deleted: Vec<String> = 
-          extract_object_keys_to_be_deleted(&article_model.body, &editing_article_model.body);
+          extract_object_keys_to_be_deleted(&article_model.body, &editing_article_json.body);
 
-    delete_objects(
-      aws_client, 
-      bucket_name, 
-      object_keys_to_be_deleted
-    ).await?;
-
-    // Ok::<EditingArticle, S3Error>(editing_article)
-    Ok::<_, S3Error>(())
+    delete_objects(aws_client, bucket_name, object_keys_to_be_deleted).await.map_err(|_| ())
   }
   .await
   {
+    //todo: write error messages as constant value which enable us know where and how error occured.
     Ok(_) => match tm.commit_transaction(&c){
-        Ok(_)  => return HttpResponse::Ok().json(editing_article),
+        Ok(_)  => return HttpResponse::Ok().json(editing_article_json),
         Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
       },
     Err(_) => match tm.rollback_transaction(&c) {
         Ok(_)  => return HttpResponse::InternalServerError().await.unwrap(),
         Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
       },
-  };
+  }
 }
 
 #[cfg(test)]
