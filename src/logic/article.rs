@@ -9,6 +9,22 @@ use crate::models::article::{
   editing_article::EditingArticle
 };
 
+/// Get an article by id.
+///
+/// # Arguments
+/// * id(i32): An article's id.
+/// * c(&PgConnection): Connection with postgress.
+///
+/// # Returns
+/// * (Result<Article, Error>): A an article.
+pub async fn get_by_id(id: i32, c: &PgConnection) -> Result<Article, Error> {
+
+  articles::table
+           .filter(articles::columns::id.eq(&id))
+           .order(articles::columns::id.asc())
+           .get_result::<Article>(c)
+}
+
 /// Creates an article.
 ///
 /// # Arguments
@@ -57,16 +73,7 @@ mod logic_article {
     article::Article,
     editing_article::EditingArticle
   };
-
-  // todo: move to test_utiliry/database.rs
-  fn establish_test_connection() -> PgConnection {
-    let c = establish_connection();
-
-    match c.begin_test_transaction() {
-      Ok(_)  => c,
-      Err(_) => panic!()
-    }
-  }
+  use crate::test_utils;
 
   fn create_new_article_model() -> NewArticle {
     NewArticle::new("test title".to_owned(), "test body".to_owned())
@@ -76,10 +83,12 @@ mod logic_article {
     EditingArticle::new(1, article_id,"test title".to_owned(), "test body".to_owned())
   }
 
+  // todo: test get_by_id and get_all
+
   //todo: original assert function.
   #[actix_web::test]
   async fn test_create() {
-    let c = establish_test_connection();
+    let c = test_utils::database::establish_test_connection();
 
     let new_article_model: NewArticle = create_new_article_model();
     let article_model:     Article    = create(new_article_model.clone(), &c).await.unwrap();
@@ -90,7 +99,7 @@ mod logic_article {
 
   #[actix_web::test]
   async fn test_update() {
-    let c = establish_test_connection();
+    let c = test_utils::database::establish_test_connection();
 
     let new_article_model: NewArticle = create_new_article_model();
     let article_model:     Article    = create(new_article_model.clone(), &c).await.unwrap();

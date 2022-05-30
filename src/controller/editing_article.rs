@@ -8,17 +8,30 @@ use crate::sdk::aws::s3::{client::get_aws_client, delete::delete_objects};
 use crate::logic::{article, editing_article};
 use crate::json_serialization::editing_article::EditingArticle;
 use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
+use crate::constants;
 
+/// 1: Update editing article with incoming editing article. \
+/// 2: Update article with incoming editing article. \
+/// 3: Extract image objects from article which are not used in updated article (editing article). \
+/// 4: Delete these image objects. \
+///
+/// # Arguments
+/// * editing_article_json(web::Json<EditingArticle>): An editing article json object.
+/// 
+/// # Returns
+/// * (HttpResponse): 
 pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpResponse {
   dotenv().ok();
   let c  = establish_connection();
   let tm = c.transaction_manager();
 
   match async {
-    // Reflect an editing article to an article.
+    let article_model = article::get(editing_article_model.clone(), &c).await.map_err(|_| ())?;
     let editing_article_model = Model_EditingArticle::new_by_json(&editing_article_json);
-    let article_model = article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
-                        editing_article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
+
+    // Reflect an editing article to an article.
+    article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
+    editing_article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
 
     // Delete objects which are no longer used in reflected article.
     let aws_client  = &get_aws_client().unwrap();
@@ -30,39 +43,13 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
   }
   .await
   {
-    //todo: write error messages as constant value which enable us know where and how error occured.
     Ok(_) => match tm.commit_transaction(&c){
-        // Reflect succeeded.
         Ok(_)  => return HttpResponse::Ok().json(editing_article_json),
-        // Migration failed.
-        Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
+        Err(_) => return HttpResponse::InternalServerError().body(constants::COMMIT_FAILED),
       },
     Err(_) => match tm.rollback_transaction(&c) {
-        // Reflect failed.
-        Ok(_)  => return HttpResponse::InternalServerError().await.unwrap(),
-        // Migration failed.
-        Err(_) => return HttpResponse::InternalServerError().await.unwrap(),
+        Ok(_)  => return HttpResponse::InternalServerError().body(constants::REFLECT_FAILED),
+        Err(_) => return HttpResponse::InternalServerError().body(constants::ROLLBACK_FAILED),
       },
-  }
-}
-
-#[cfg(test)]
-mod controller_edting_article {
-  use super::*;
-  use crate::constants;
-  use crate::test_utils::{database::establish_test_connection};
-
-  #[actix_web::test]
-  async fn test_reflect() {
-    let c = establish_test_connection();    
-
-    //todo: get latest editing article.
-    let editing_article_model = get_latest_editing_article();
-    //todo: create editing article json
-    let editing_article_json = editing_article::new_by_model(editing_article_model);
-    //todo: reflect()
-    let result = reflect(editing_article_json);
-
-    assert_eq!(result.getcontent(), constants::MIGRATION_FAILED)
   }
 }
