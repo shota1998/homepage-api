@@ -78,6 +78,6 @@ mod test_sdk_aws_s3_delete {
                                     key_list
                                    ).await;
 
-        assert_eq!(true, result.unwrap()); 
+        assert_eq!((), result.unwrap()); 
     }
 }
