@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
+use crate::models::article::article::Article as ModelArticle;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Article {
@@ -26,5 +27,14 @@ impl Article {
       title : title,
       body  : body
     }
+  }
+
+  // todo: move to trait with new()
+  pub fn new_by_model(article_model: &ModelArticle) -> Article {
+    return Article {
+      id:    article_model.id.clone(),
+      title: article_model.title.clone(),
+      body:  article_model.body.clone()
+    };
   }
 }

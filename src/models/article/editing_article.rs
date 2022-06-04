@@ -1,5 +1,5 @@
 use crate::schema::editing_articles;
-use crate::json_serialization::editing_article::EditingArticle as Serial_EditingArticle;
+use crate::json_serialization::editing_article::EditingArticle as SerialEditingArticle;
 use actix_web::web;
 
 #[derive(Queryable, Identifiable, Associations)]
@@ -33,12 +33,12 @@ impl EditingArticle {
   }
 
   // todo: move to trait with new()
-  pub fn new_by_json(editing_article_model: &web::Json<Serial_EditingArticle>) -> EditingArticle {
+  pub fn new_by_json(editing_article: &web::Json<SerialEditingArticle>) -> EditingArticle {
     return EditingArticle {
-      id:         editing_article_model.id.clone(),
-      article_id: editing_article_model.article_id.clone(),
-      title:      editing_article_model.title.clone(),
-      body:       editing_article_model.body.clone()
+      id:         editing_article.id.clone(),
+      article_id: editing_article.article_id.clone(),
+      title:      editing_article.title.clone(),
+      body:       editing_article.body.clone()
     };
   }
 }
