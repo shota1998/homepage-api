@@ -7,7 +7,7 @@ use crate::my_regex::s3::extract_object_keys_to_be_deleted;
 use crate::sdk::aws::s3::{client::get_aws_client, delete::delete_objects};
 use crate::logic::{article, editing_article};
 use crate::json_serialization::editing_article::EditingArticle;
-use crate::models::article::editing_article::EditingArticle as Model_EditingArticle;
+use crate::models::article::editing_article::EditingArticle as ModelEditingArticle;
 use crate::constants;
 
 /// 1: Update editing article with incoming editing article. \
@@ -27,7 +27,7 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
 
   match async {
     let article_model = article::get_by_id(editing_article_json.article_id, &c).await.map_err(|_| ())?;
-    let editing_article_model = Model_EditingArticle::new_by_json(&editing_article_json);
+    let editing_article_model = ModelEditingArticle::new_by_json(&editing_article_json);
 
     // Reflect an editing article to an article.
     article::update(editing_article_model.clone(), &c).await.map_err(|_| ())?;
@@ -51,22 +51,5 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
         Ok(_)  => return HttpResponse::InternalServerError().body(constants::REFLECT_FAILED),
         Err(_) => return HttpResponse::InternalServerError().body(constants::ROLLBACK_FAILED),
       },
-  }
-}
-
-#[cfg(test)]
-mod controller_editing_article {
-  #[actix_web::test]
-  async fn test_reflect() {
-
-    // todo: create create()
-    // todo: test create()
-
-    // todo: call create
-    // todo: call reflect
-    // todo:  mocke aws function
-    // todo: compare result
-
-    // todo: check if transaction working whiel this test.
   }
 }
