@@ -1,5 +1,6 @@
 use actix_web::web;
 use super::path::Path;
+use crate::controller::editing_article;
 pub mod get;
 mod edit;
 mod reflect;
@@ -18,8 +19,10 @@ pub fn routes_factory(app: &mut web::ServiceConfig) {
   app.route(&base_path.define(String::from("/edit")),
     web::put().to(edit::edit));
 
+  // app.route(&base_path.define(String::from("/reflect")),
+  //   web::put().to(reflect::reflect));
   app.route(&base_path.define(String::from("/reflect")),
-    web::put().to(reflect::reflect));
+    web::put().to(editing_article::reflect));
 
   app.route(&base_path.define(String::from("/reflesh")),
     web::put().to(reflesh::reflesh));
