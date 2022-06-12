@@ -47,3 +47,53 @@ pub async fn create(new_article_json: web::Json<SerialNewArticle>) -> HttpRespon
       },
   }
 }
+
+// #[cfg(test)]
+// mod controller_article {
+//   use super::*;
+//   use actix_web::web;
+//   use crate::test_utils;
+//   use crate::schema::{articles, editing_articles};
+//   use crate::models::article::{
+//     article::Article,
+//     editing_article::EditingArticle
+//   };
+//   use crate::json_serialization::{
+//     new_article::NewArticle as SerialNewArticle,
+//     article::Article as SerialArticle
+//   };
+  
+//   #[actix_web::test]
+//   async fn test_create() {
+//     // todo: preserve current latest article and editing article
+//     let c = test_utils::database::establish_test_connection();
+
+//     // move to helper.
+//     let latest_article = articles::table
+//                                   .order(articles::columns::id.desc())
+//                                   .first::<Article>(&c)
+//                                   .unwrap();
+
+//     let latest_editing_article = editing_articles::table
+//                                                   .order(editing_articles::columns::id.desc())
+//                                                   .first::<EditingArticle>(&c)
+//                                                   .unwrap();
+
+//     let serial_new_article = SerialNewArticle::new("test title".to_owned(), "test body".to_owned());
+//     let article_json       = SerialArticle::new_by_model(&latest_article);
+//     let http_response = create(web::Json(serial_new_article)).await;
+//     // todo: check if a new article and a new editing article were created.
+//     let created_article = articles::table
+//                                   .order(articles::columns::id.desc())
+//                                   .first::<Article>(&c)
+//                                   .unwrap();
+
+//     let created_editing_article = editing_articles::table
+//                                                   .order(editing_articles::columns::id.desc())
+//                                                   .first::<EditingArticle>(&c)
+//                                                   .unwrap();
+//     //
+//     // todo: test http status
+//     assert_eq!(latest_article.id, created_article.id);
+//   }
+// }

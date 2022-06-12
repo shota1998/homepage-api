@@ -26,11 +26,14 @@ mod logic;
 mod constants;
 mod test_utils;
 
-// #[actix_web::main]
-#[actix_rt::main]
+#[actix_web::main]
+// #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     
+    env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     // Create http server.
     HttpServer::new(|| {
         let cors = Cors::default()

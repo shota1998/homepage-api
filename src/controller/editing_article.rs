@@ -24,9 +24,10 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
   dotenv().ok();
   let c  = establish_connection();
   let tm = c.transaction_manager();
+  tm.begin_transaction(&c);
 
   match async {
-    let article_model = article::get_by_id(editing_article_json.article_id, &c).await.map_err(|_| ())?;
+    let article_model         = article::get_by_id(editing_article_json.article_id, &c).await.map_err(|_| ())?;
     let editing_article_model = ModelEditingArticle::new_by_json(&editing_article_json);
 
     // Reflect an editing article to an article.
@@ -53,3 +54,22 @@ pub async fn reflect(editing_article_json: web::Json<EditingArticle>) -> HttpRes
       },
   }
 }
+
+
+// todo: create teardown to clear up db.
+// #[cfg(test)]
+// mod controller_editing_article {
+//   #[actix_web::test]
+//   async fn test_reflect() {
+
+//     // todo: create create()
+//     // todo: test create()
+
+//     // todo: call create
+//     // todo: call reflect
+//     // todo:  mocke aws function
+//     // todo: compare result
+
+//     // todo: check if transaction working whiel this test.
+//   }
+// }

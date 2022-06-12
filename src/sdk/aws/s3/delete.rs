@@ -18,6 +18,8 @@ pub async fn delete_objects(
     key_list:     Vec<String>
 ) -> Result<(), Error> {
     // tracing_subscriber::fmt::init();
+    
+    if key_list.len() == 0 { return Ok(())}
 
     let mut object_id_list: Vec<ObjectIdentifier> = vec![];
 
@@ -33,8 +35,6 @@ pub async fn delete_objects(
           .delete(delete)
           .send()
           .await?;
-
-    println!("Objects deleted.");
 
     Ok(())
 }
