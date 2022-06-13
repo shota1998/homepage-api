@@ -17,8 +17,6 @@ pub async fn delete_objects(
     bucket_name: &str,
     key_list:     Vec<String>
 ) -> Result<(), Error> {
-    // tracing_subscriber::fmt::init();
-    
     if key_list.len() == 0 { return Ok(())}
 
     let mut object_id_list: Vec<ObjectIdentifier> = vec![];
