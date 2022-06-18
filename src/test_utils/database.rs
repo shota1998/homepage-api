@@ -1,4 +1,5 @@
 #![allow(unused)]
+#[cfg(test)]
 
 use diesel::pg::PgConnection;
 use diesel::connection::Connection;
