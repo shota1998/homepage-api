@@ -2,13 +2,32 @@ version: "3.7"
 
 services:
 
-  postgress:
-    container_name: 'to-do-postgres'
+  db-test:
+    container_name: 'homepage-db-test'
     image: 'postgres:11.2'
-    restart: 'always'
+    ports:
+      - '5430:5432'
+    environment:
+      - 'POSTGRES_USER=test'
+      - 'POSTGRES_DB=test'
+      - 'POSTGRES_PASSWORD=test'
+
+  db-dev:
+    container_name: 'homepage-db-dev'
+    image: 'postgres:11.2'
+    ports:
+      - '5431:5432'
+    environment:
+      - 'POSTGRES_USER=dev'
+      - 'POSTGRES_DB=dev'
+      - 'POSTGRES_PASSWORD=dev'
+
+  db-prod:
+    container_name: 'homepage-db-prod'
+    image: 'postgres:11.2'
     ports:
       - '5432:5432'
     environment:
-      - 'POSTGRES_USER=hoge'
-      - 'POSTGRES_DB=hoge'
-      - 'POSTGRES_PASSWORD=hoge'
+      - 'POSTGRES_USER=prod'
+      - 'POSTGRES_DB=prod'
+      - 'POSTGRES_PASSWORD=prod'
