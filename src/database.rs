@@ -25,5 +25,5 @@ pub fn establish_connection() -> PgConnection {
   log::info!("DB URL : {}", database_url);
 
   PgConnection::establish(&database_url)
-    .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    .unwrap_or_else(|msg| panic!("URL: {} : {}", database_url, msg))
 }

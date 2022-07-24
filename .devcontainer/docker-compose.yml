@@ -1,0 +1,54 @@
+version: '0.0.1'
+
+services:
+  main:
+    build: .
+    tty: true
+    volumes:
+      - ../devsource:/devsource
+    working_dir: /devsource
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - '28000:8001'
+      
+  db-test:
+    container_name: 'homepage-db-test'
+    image: 'postgres:11.2'
+    ports:
+      - '5430:5432'
+    environment:
+      - 'POSTGRES_USER=test'
+      - 'POSTGRES_DB=test'
+      - 'POSTGRES_PASSWORD=test'
+
+  db-dev:
+    container_name: 'homepage-db-dev'
+    image: 'postgres:11.2'
+    ports:
+      - '5431:5432'
+    environment:
+      - 'POSTGRES_USER=dev'
+      - 'POSTGRES_DB=dev'
+      - 'POSTGRES_PASSWORD=dev'
+
+  # db-prod:
+  #   container_name: 'homepage-db-prod'
+  #   image: 'postgres:11.2'
+  #   ports:
+  #     - '5432:5432'
+  #   environment:
+  #     - 'POSTGRES_USER=prod'
+  #     - 'POSTGRES_DB=prod'
+  #     - 'POSTGRES_PASSWORD=prod'
+
+# networks:
+#   backend:
+#     name: backend
+#     driver: bridge
+#     ipam:
+#       driver: default
+#       config:
+#         - subnet: "172.25.30.0/24"

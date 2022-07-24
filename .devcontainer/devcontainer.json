@@ -1,0 +1,13 @@
+{
+  "name": "homepage-api",
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "main",
+  "settings": {
+      //"http.proxyStrictSSL": false,
+  },
+  "extensions": [
+      "rust-lang.rust",
+      "vadimcn.vscode-lldb"
+  ],
+  "workspaceFolder": ".."
+}
