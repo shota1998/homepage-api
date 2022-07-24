@@ -1,5 +1,5 @@
 {
-  "name": "homepage-api",
+  "name": "api",
   "dockerComposeFile": "./docker-compose.yml",
   "service": "main",
   "settings": {
@@ -9,5 +9,5 @@
       "rust-lang.rust",
       "vadimcn.vscode-lldb"
   ],
-  "workspaceFolder": ".."
+  "workspaceFolder": "/workspace"
 }
