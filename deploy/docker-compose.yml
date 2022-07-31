@@ -9,12 +9,12 @@ services:
     ports:
       - 28000:80001
 
-  homepage-db:
-      container_name: 'homepage-db'
-      image: 'postgres:11.2'
-      ports:
-        - '15432:5432'
-      environment:
-        - 'POSTGRES_USER=prod'
-        - 'POSTGRES_DB=prod'
-        - 'POSTGRES_PASSWORD=prod'
+  homepage-db-main:
+    container_name: 'homepage-db-main'
+    image: 'postgres:11.2'
+    ports:
+      - '15432:5432'
+    environment:
+      - 'POSTGRES_USER=main'
+      - 'POSTGRES_DB=main'
+      - 'POSTGRES_PASSWORD=main'

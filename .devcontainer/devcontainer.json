@@ -1,7 +1,7 @@
 {
-  "name": "api",
+  "name": "homepage-api",
   "dockerComposeFile": "./docker-compose.yml",
-  "service": "main",
+  "service": "homepage-api",
   "settings": {
       //"http.proxyStrictSSL": false,
   },
