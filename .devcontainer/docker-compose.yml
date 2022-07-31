@@ -1,7 +1,8 @@
 version: '0.0.1'
 
 services:
-  main:
+  homepage-api:
+    container_name: 'homepage-api'
     build: .
     tty: true
     volumes:
@@ -13,23 +14,43 @@ services:
       - seccomp:unconfined
     ports:
       - '28000:8001'
+    depends_on:
+      homepage-db-main:
+        condition: service_healthy
+      homepage-db-test:
+        condition: service_healthy
+    command: "  diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+             && diesel setup --database-url postgres://test:test@homepage-db-test/homepage"
+           
       
-  db-test:
-    container_name: 'homepage-db-test'
+  homepage-db-main:
+    container_name: 'homepage-db-main'
     image: 'postgres:11.2'
     ports:
       - '15432:5432'
     environment:
-      - 'POSTGRES_USER=test'
-      - 'POSTGRES_DB=test'
-      - 'POSTGRES_PASSWORD=test'
+      - 'POSTGRES_USER=main'
+      - 'POSTGRES_DB=main'
+      - 'POSTGRES_PASSWORD=main'
+    healthcheck:
+      test: exit 0  
+      interval: 1s
+      timeout: 1s
+      retries: 3
+      start_period: 1s
 
-  db-dev:
-    container_name: 'homepage-db-dev'
+  homepage-db-test:
+    container_name: 'homepage-db-test'
     image: 'postgres:11.2'
     ports:
       - '25432:5432'
     environment:
-      - 'POSTGRES_USER=dev'
-      - 'POSTGRES_DB=dev'
-      - 'POSTGRES_PASSWORD=dev'
+      - 'POSTGRES_USER=test'
+      - 'POSTGRES_DB=test'
+      - 'POSTGRES_PASSWORD=test'
+    healthcheck:
+      test: exit 0  
+      interval: 1s
+      timeout: 1s
+      retries: 3
+      start_period: 1s

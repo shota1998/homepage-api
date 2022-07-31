@@ -6,8 +6,7 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 COPY ./target/release ./workspace
 WORKDIR ./workspace
 
-RUN cargo build
+# EXPOSE 80001
 
-EXPOSE 80001
-
-CMD ["cargo", "run"]
+CMD diesel setup
+CMD cargo run
