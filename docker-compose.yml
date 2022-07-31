@@ -6,7 +6,7 @@ services:
     container_name: 'homepage-db-test'
     image: 'postgres:11.2'
     ports:
-      - '5430:5432'
+      - '15432:5432'
     environment:
       - 'POSTGRES_USER=test'
       - 'POSTGRES_DB=test'
@@ -16,7 +16,7 @@ services:
     container_name: 'homepage-db-dev'
     image: 'postgres:11.2'
     ports:
-      - '5431:5432'
+      - '25432:5432'
     environment:
       - 'POSTGRES_USER=dev'
       - 'POSTGRES_DB=dev'
@@ -26,7 +26,7 @@ services:
     container_name: 'homepage-db-prod'
     image: 'postgres:11.2'
     ports:
-      - '5432:5432'
+      - '35432:5432'
     environment:
       - 'POSTGRES_USER=prod'
       - 'POSTGRES_DB=prod'

@@ -1,24 +1,20 @@
-version: '3.7'
+version: '1.0'
 
 services:
 
-  rust_app:
-    container_name: 'rust_app'
-    image: "chan1998/actix_web_application:latest"
+  homepage-api:
+    container_name: 'homepage-api'
+    image: "ghcr.io/shota1998/homepage/api:latest"
     restart: always
     ports:
-      - 8000:8000
-    expose:
-      - 8000
+      - 28000:80001
 
-  nginx:
-    container_name: 'nginx-rust'
-    image: 'nginx:latest'
-    ports:
-      - 80:80
-    links:
-      - 'rust_app'
-    depends_on:
-      - 'rust_app'
-    volumes:
-      - './nginx/nginx.conf:/etc/nginx/nginx.conf'
+  homepage-db:
+      container_name: 'homepage-db'
+      image: 'postgres:11.2'
+      ports:
+        - '15432:5432'
+      environment:
+        - 'POSTGRES_USER=prod'
+        - 'POSTGRES_DB=prod'
+        - 'POSTGRES_PASSWORD=prod'
