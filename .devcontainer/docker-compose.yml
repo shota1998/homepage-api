@@ -19,8 +19,10 @@ services:
         condition: service_healthy
       homepage-db-test:
         condition: service_healthy
-    command: "  diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
-             && diesel setup --database-url postgres://test:test@homepage-db-test/homepage"
+    command: bash -c "
+                diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+             && diesel setup --database-url postgres://test:test@homepage-db-test/homepage 
+             && tail -f /dev/null "
            
       
   homepage-db-main:
@@ -30,7 +32,7 @@ services:
       - '15432:5432'
     environment:
       - 'POSTGRES_USER=main'
-      - 'POSTGRES_DB=main'
+      - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=main'
     healthcheck:
       test: exit 0  
@@ -46,7 +48,7 @@ services:
       - '25432:5432'
     environment:
       - 'POSTGRES_USER=test'
-      - 'POSTGRES_DB=test'
+      - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=test'
     healthcheck:
       test: exit 0  
