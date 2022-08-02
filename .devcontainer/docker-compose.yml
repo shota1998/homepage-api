@@ -30,14 +30,16 @@ services:
     image: 'postgres:11.2'
     ports:
       - '15432:5432'
+    user: ${POSTGRES_USER}
     environment:
       - 'POSTGRES_USER=main'
       - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=main'
     healthcheck:
-      test: exit 0  
+      # test: ["CMD-SHELL", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s
-      timeout: 1s
+      timeout: 3s
       retries: 3
       start_period: 1s
 
@@ -46,12 +48,13 @@ services:
     image: 'postgres:11.2'
     ports:
       - '25432:5432'
+    user: ${POSTGRES_USER}
     environment:
       - 'POSTGRES_USER=test'
       - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=test'
     healthcheck:
-      test: exit 0  
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s
       timeout: 1s
       retries: 3
