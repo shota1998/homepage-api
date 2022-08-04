@@ -1,46 +1,69 @@
 #[macro_use] extern crate diesel;
-extern crate dotenv;
 
-use actix_web::{App, HttpServer, HttpResponse};
-use actix_service::Service;
+use actix_web::{
+    App,
+    HttpServer,
+    HttpResponse,
+    http
+};
+use actix_web::dev::Service;
+use actix_cors::Cors;
 use futures::future::{ok, Either};
-
-use log;
-use env_logger;
+use std::env;
+use dotenv::dotenv;
 
 mod schema;
 mod database;
 mod models;
-mod to_do;
 mod json_serialization;
-mod views;
+mod routes;
 mod auth;
+mod sdk;
+mod file;
+mod my_regex;
+mod controller;
+mod logic;
+mod constants;
+mod test_utils;
 
-#[actix_rt::main]
+#[actix_web::main]
+// #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-
-    // Start logging.
+    dotenv().ok();
+    
+    env::set_var("RUST_LOG", "info");
     env_logger::init();
+
     // Create http server.
     HttpServer::new(|| {
+        let cors = Cors::default()
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN_1").expect("ALLOWED_ORIGIN_1 must be set."))
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN_2").expect("ALLOWED_ORIGIN_2 must be set."))
+                    .allowed_methods(vec!["GET", "POST", "PUT"])
+                    .allowed_headers(vec![
+                        http::header::AUTHORIZATION,
+                        http::header::ACCEPT,
+                        http::header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                        http::header::CONTENT_TYPE
+                    ])
+                    .max_age(3600);
+
         let app = App::new()
-            .wrap_fn(|req, srv| {
-                // srv => routing
-                // req => service request
-                
+            .wrap(cors)
+            .wrap_fn(|request, service| {
                 // Maintain request uri path to be remembered through the process.
-                let request_url: String = String::from(*&req.uri().path().clone());
+                let request_url: String = String::from(*&request.uri().path().clone());
                 // If token passed or not.
                 let passed: bool;
 
                 // Check token.
-                // ??? What is "*&req" ?
-                if *&req.path().contains("/item/") {
-                    match auth::process_token(&req) {
+                if *&request.path().contains("/item/") {
+                    match auth::process_token(&request) {
                         Ok(_token) => {passed = true;},
                         Err(_message) => {passed = false;}
                     };
-                } else {
+                }
+                else {
                     passed = true;
                 }
 
@@ -48,32 +71,28 @@ async fn main() -> std::io::Result<()> {
                 let end_result = match passed {
                     // Call request.
                     true => {
-                        Either::Left(srv.call(req))
+                        Either::Left(service.call(request))
                     },
                     // Send body which says failing in process.
                     false => {
-                        Either::Right(
-                            ok(req.into_response(
-                                HttpResponse::Unauthorized()
-                                                .finish()
-                                                .into_body())
-                            )
-                        )
+                        let resp = HttpResponse::Unauthorized().finish();
+                        Either::Right(ok(request.into_response(resp).map_into_right_body()))
                     }
                 };
 
-                // Await result to log.
+                // Await result to be loged.
                 async move {
-                    let result  = end_result.await?;
+                    let result = end_result.await?;
                     log::info!("{} -> {}", request_url, &result.status());
                     Ok(result)
                 }
-                // end_result
-            }).configure(views::views_factory);
+            })
+            .configure(routes::routes_factory);
         return app
     })
+    // todo: use enviroment variables.
     // .bind("127.0.0.1:8000")?
-    .bind("0.0.0.0:8000")?
+    .bind("0.0.0.0:8001")?
     .run()
     .await
 }
