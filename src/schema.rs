@@ -1,25 +1,32 @@
 table! {
-    to_do (id) {
+    articles (id) {
         id -> Int4,
         title -> Varchar,
-        status -> Varchar,
-        user_id -> Int4,
+        body -> Text,
     }
 }
 
 table! {
-    users (id) {
+    editing_articles (id) {
         id -> Int4,
-        username -> Varchar,
-        email -> Varchar,
-        password -> Varchar,
-        unique_id -> Varchar,
+        article_id -> Int4,
+        title -> Varchar,
+        body -> Text,
     }
 }
 
-joinable!(to_do -> users (user_id));
+table! {
+    tmp_articles (id) {
+        id -> Int4,
+        title -> Varchar,
+        body -> Text,
+    }
+}
+
+joinable!(editing_articles -> articles (article_id));
 
 allow_tables_to_appear_in_same_query!(
-    to_do,
-    users,
+    articles,
+    editing_articles,
+    tmp_articles,
 );
