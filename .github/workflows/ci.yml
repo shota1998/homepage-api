@@ -51,7 +51,7 @@ jobs:
 
     - name: Build containers
       run: | 
-        docker-compose run -f ${{ env.DOCKER_COMPOSE_YML }}
+        docker-compose up -df ${{ env.DOCKER_COMPOSE_YML }}
         docker exec -it ${{ env.CONTAINER_NAME }} bash
 
     - name: Setup rust
