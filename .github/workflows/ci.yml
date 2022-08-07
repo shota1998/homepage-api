@@ -52,30 +52,21 @@ jobs:
     - name: Setup rust
       run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
-    # - name: Build app
-    #   run: cargo build --verbose
-
     - name: Build containers
       run: | 
         docker-compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
         sleep 5
         docker ps -a
 
-    # - name: Access the app container
-    #   run: docker exec -it ${{ env.CONTAINER_NAME }} bash
-
-    # - name: Run tests
-    #   run: cargo test --verbose
-
-    - name: Run tests
+    - name: Build app
       run: |
-        docker-compose exec -T ${{ env.CONTAINER_NAME }} bash "cargo build --verbose"
-        docker logs
+        docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo build --verbose
+        docker logs ${{ env.CONTAINER_NAME }}
       
     - name: Run tests
       run: | 
-        docker-compose exec -T ${{ env.CONTAINER_NAME }} bash "cargo test --verbose"
-        docker logs
+        docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo test --verbose
+        docker logs ${{ env.CONTAINER_NAME }}
 
 # on:
 #   merge:
