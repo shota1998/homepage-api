@@ -59,9 +59,12 @@ jobs:
         docker ps -a
 
     - name: Build app
-      run: |
-        docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo build --verbose
-        docker logs ${{ env.CONTAINER_NAME }}
+      run: cargo build --verbose
+
+    # - name: Build app
+    #   run: |
+    #     docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo build --verbose
+    #     docker logs ${{ env.CONTAINER_NAME }}
       
     - name: Run tests
       run: | 
