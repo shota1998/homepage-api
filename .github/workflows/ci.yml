@@ -51,9 +51,9 @@ jobs:
 
     - name: Build containers
       run: | 
-        docker-compose up -df ${{ env.DOCKER_COMPOSE_YML }}
+        docker-compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
         docker ps -a
-          sleep 30
+          sleep 5
         docker ps -a
         docker exec -it ${{ env.CONTAINER_NAME }} bash
 
