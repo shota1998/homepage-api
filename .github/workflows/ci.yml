@@ -74,11 +74,11 @@ jobs:
     - name: Build Rust
       run: cargo build --verbose
 
-    - name: Build containers
-      run: | 
-        docker-compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
-        sleep 5
-        docker ps -a
+    # - name: Build containers
+    #   run: | 
+    #     docker-compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
+    #     sleep 5
+    #     docker ps -a
 
 
     # - name: Build app
@@ -86,10 +86,10 @@ jobs:
     #     docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo build --verbose
     #     docker logs ${{ env.CONTAINER_NAME }} 
       
-    - name: Run tests
-      run: | 
-        docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo test --verbose
-        docker logs ${{ env.CONTAINER_NAME }}
+    # - name: Run tests
+    #   run: | 
+    #     docker-compose exec -T ${{ env.CONTAINER_NAME }} cargo test --verbose
+    #     docker logs ${{ env.CONTAINER_NAME }}
 
 # on:
 #   merge:
