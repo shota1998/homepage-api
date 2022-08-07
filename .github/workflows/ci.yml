@@ -23,6 +23,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Create an env file
       run: |
@@ -49,7 +51,22 @@ jobs:
 
         cat .env
 
-    - name: Setup rust
+    - name: Install Python
+      uses: actions/setup-python@v2
+
+    - name: Restore mtime
+      run: python ./git-restore-mtime.py
+
+    - name: Cache Rust
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Setup Rust
       run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
     - name: Build containers
@@ -58,7 +75,7 @@ jobs:
         sleep 5
         docker ps -a
 
-    - name: Build app
+    - name: Build Rust
       run: cargo build --verbose
 
     # - name: Build app
