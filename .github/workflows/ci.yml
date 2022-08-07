@@ -75,7 +75,7 @@ jobs:
       run: cargo build --verbose
 
     # - name: Build containers
-    #   run: | 
+    #   run: |  
     #     docker-compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
     #     sleep 5
     #     docker ps -a
