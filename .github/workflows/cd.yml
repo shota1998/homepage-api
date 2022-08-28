@@ -81,7 +81,7 @@ jobs:
 
   send_artifact:
     
-    needs: [build_docker, build_rust]
+    needs: [build_rust]
     runs-on: ubuntu-latest
 
     steps:
