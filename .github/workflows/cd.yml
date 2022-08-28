@@ -195,6 +195,7 @@ jobs:
           -o StrictHostKeyChecking=no                        \
           -o ConnectTimeout=5                                \
           "
+            docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.FILE_NAME }}"
             curl -i localhost:28000 -o /dev/null -w '%{http_code}\n' -s
