@@ -16,49 +16,6 @@ env:
   PATH_TO_IMAGE_CACHE: /tmp/.buildx-cache
 
 jobs:
-  build_docker:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Login to GitHub Container registry
-      uses: docker/login-action@v2
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.PATH_TO_IMAGE_CACHE }}
-        key: ${{ github.ref }}-${{ github.sha }}
-        restore-keys: |
-          ${{ github.ref }}
-          refs/head/main
-
-    - name: Push image
-      uses: docker/build-push-action@v3
-      with:
-        builder: ${{ steps.buildx.outputs.name }}
-        context: .
-        file: ${{ env.PATH_TO_ARTIFACT2 }}/Dockerfile
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ github.actor }}/homepage/api:latest
-        cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-    - name: Move cache 
-      run: |
-        rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
-        mv /tmp/.buildx-cache-new ${{ env.PATH_TO_IMAGE_CACHE }}
 
   build_rust:
 
@@ -144,6 +101,7 @@ jobs:
     - name: Compress artifact
       run: |
         mv ${{ env.PATH_TO_ARTIFACT2 }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
+        mv ${{ env.PATH_TO_ARTIFACT2 }}/Dockerfile ${{ steps.test.outputs.download-path }}
         cd ${{ steps.test.outputs.download-path }}
         tar -cvf ~/${{ env.TAR_FILE_NAME }} .
 
@@ -195,7 +153,6 @@ jobs:
           -o StrictHostKeyChecking=no                        \
           -o ConnectTimeout=5                                \
           "
-            docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.FILE_NAME }}"
             curl -i localhost:28000 -o /dev/null -w '%{http_code}\n' -s
