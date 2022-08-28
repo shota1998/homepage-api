@@ -4,7 +4,7 @@ services:
 
   homepage-api:
     container_name: 'homepage-api'
-    build: .
+    image: "ghcr.io/shota1998/homepage/api:latest"
     restart: always
     tty: true
     volumes:
