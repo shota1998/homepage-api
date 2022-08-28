@@ -67,6 +67,44 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Python
+      uses: actions/setup-python@v2
+
+    - name: Restore mtime
+      run: python ./git-restore-mtime.py
+
+    - name: Cache Rust
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Setup Rust
+      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my-artifact
+        path: ${{ env.PATH_TO_ARTIFACT }}/${{ env.FILE_NAME}}
+
+  send_artifact:
+    
+    needs: [build_docker, build_rust]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
     - name: Create an env file
       run: |
@@ -93,44 +131,6 @@ jobs:
 
         cat .env
 
-    - name: Install Python
-      uses: actions/setup-python@v2
-
-    - name: Restore mtime
-      run: python ./git-restore-mtime.py
-
-    - name: Cache Rust
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-    - name: Setup Rust
-      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-
-    - name: Build
-      run: cargo build --verbose
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: my-artifact
-        path: ${{ env.PATH_TO_ARTIFACT }}/${{ env.FILE_NAME}}
-
-  send_artifact:
-    
-    needs: [build_docker, build_rust]
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
     - name: Download artifact
       uses: actions/download-artifact@v3
       id: test
@@ -143,8 +143,11 @@ jobs:
 
     - name: Compress artifact
       run: |
-        mv ${{ env.PATH_TO_ARTIFACT2 }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
-        cd ${{ steps.test.outputs.download-path }}
+        cp ${{ env.PATH_TO_ARTIFACT2 }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
+        cp -r migrations ${{ steps.test.outputs.download-path }}
+        cp Cargo.toml    ${{ steps.test.outputs.download-path }}
+        cp .env          ${{ steps.test.outputs.download-path }}
+        cd               ${{ steps.test.outputs.download-path }}
         tar -cvf ~/${{ env.TAR_FILE_NAME }} .
 
     - name: Generate ssh private key

@@ -1,7 +1,5 @@
 /target
 /dev/variables.json
-# /deploy
 .env
 *.pem
 .vscode/
-# .devcontainer/

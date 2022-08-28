@@ -21,7 +21,6 @@ services:
         condition: service_healthy
     command: bash -c "
                 diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
-             && diesel setup --database-url postgres://test:test@homepage-db-test/homepage 
              && tail -f /dev/null "
 
   homepage-db-main:
