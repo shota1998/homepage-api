@@ -8,9 +8,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
+  PATH_TO_ARTIFACT2: deploy
   PATH_TO_ARTIFACT: target/debug
-  TAR_FILE_NAME: artifact.tar
   FILE_NAME: api_bin
+  TAR_FILE_NAME: artifact.tar
 
   PATH_TO_IMAGE_CACHE: /tmp/.buildx-cache
 
@@ -48,7 +49,7 @@ jobs:
       with:
         builder: ${{ steps.buildx.outputs.name }}
         context: .
-        file: .devcontainer/Dockerfile
+        file: ${{ env.PATH_TO_ARTIFACT2 }}/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ github.actor }}/homepage/api:latest
         cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
@@ -142,7 +143,7 @@ jobs:
 
     - name: Compress artifact
       run: |
-        mv docker-compose.yml ${{ steps.test.outputs.download-path }}
+        mv ${{ env.PATH_TO_ARTIFACT2 }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
         cd ${{ steps.test.outputs.download-path }}
         tar -cvf ~/${{ env.TAR_FILE_NAME }} .
 
@@ -196,8 +197,8 @@ jobs:
           "
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.FILE_NAME }}"
-            curl -i localhost:8080 -o /dev/null -w '%{http_code}\n' -s
+            curl -i localhost:28000 -o /dev/null -w '%{http_code}\n' -s
           "
 
     - name: Health check
-      run: curl -i ${{ secrets.REMOTE_IP }}:8080 -o /dev/null -w '%{http_code}\n' -s
+      run: curl -i ${{ secrets.REMOTE_IP }}:28000 -o /dev/null -w '%{http_code}\n' -s
