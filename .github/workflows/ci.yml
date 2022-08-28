@@ -1,9 +1,11 @@
 name: Hompage-api
 
 on:
-  pull_request:
-    types: [ synchronize ]
-    branches: [ "master", "release" ]
+  push:
+    branches: [ "master" ]
+  # pull_request:
+  #   types: [ synchronize ]
+  #   branches: [ "master", "release" ]
 
 env:
   CARGO_TERM_COLOR: always
