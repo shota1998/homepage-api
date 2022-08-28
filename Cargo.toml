@@ -5,6 +5,7 @@ edition = "2018"
 
 [[bin]]
 name = "api_bin"
+path = "src/main.rs"
 
 [dependencies]
 actix-cors    = "0.6.1"
