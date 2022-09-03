@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2018"
 
 [[bin]]
-name = "api_bin"
+# name = "api_bin"
+name = "homepage-api-server-for-editer"
 path = "src/main.rs"
 
 [dependencies]

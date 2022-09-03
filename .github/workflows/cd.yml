@@ -190,6 +190,9 @@ jobs:
             ls -la
           "
 
+    # TODO
+    # Preparation for ssl
+
     - name: Run app
       run: |
         ssh                                                  \
@@ -205,4 +208,4 @@ jobs:
           "
 
     - name: Health check
-      run: curl -i ${{ secrets.REMOTE_IP }}:28000 -o /dev/null -w '%{http_code}\n' -s
+      run: curl -i ${{ secrets.REMOTE_IP }} -o /dev/null -w '%{http_code}\n' -s
