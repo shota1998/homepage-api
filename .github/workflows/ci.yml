@@ -10,7 +10,6 @@ env:
   CARGO_TERM_COLOR: always
   DOCKER_COMPOSE_YML: deploy/docker-compose.yml
   CONTAINER_NAME: homepage-api
-  REGISTRY: ghcr.io
   PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
   PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
 
