@@ -179,24 +179,24 @@ jobs:
 
     - name: Decompress artifact
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
-            tar -xvf ${{ env.TAR_FILE_NAME }}
+            tar -xvf ${{ env.TAR_FILE_NAME }} && rm -f ${{ env.TAR_FILE_NAME }}
             chmod 755 ./${{ env.FILE_NAME }}
             ls -la
           "
 
     - name: Run app
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
             docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
