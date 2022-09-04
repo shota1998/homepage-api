@@ -9,7 +9,7 @@ env:
   REGISTRY: ghcr.io
   CARGO_TERM_COLOR: always
   DOCKER_FILE_DIR: deploy
-  BIN_FIL_DIR: target/debug
+  BIN_FIL_DIR: target/release
   BIN_FILE_NAME: api_bin
   TAR_FILE_NAME: artifact.tar
 
