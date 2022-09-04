@@ -179,24 +179,24 @@ jobs:
 
     - name: Decompress artifact
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
-            tar -xvf ${{ env.TAR_FILE_NAME }}
+            tar -xvf ${{ env.TAR_FILE_NAME }} && rm -f ${{ env.TAR_FILE_NAME }}
             chmod 755 ./${{ env.BIN_FILE_NAME }}
             ls -la
           "
 
     - name: Run app
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
             docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
@@ -206,3 +206,15 @@ jobs:
 
     - name: Health check
       run: curl -i ${{ secrets.REMOTE_IP }}:28000 -o /dev/null -w '%{http_code}\n' -s
+
+  delete_artifacts:
+  
+    if: always()
+    needs: send_artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: kolpav/purge-artifacts-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          expire-in: 0
