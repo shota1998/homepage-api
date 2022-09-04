@@ -14,8 +14,8 @@ env:
   BIN_FIL_DIR: target/release
   BIN_FILE_NAME: api_bin
   TAR_FILE_NAME: artifact.tar
-
-  PATH_TO_IMAGE_CACHE: /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
 
 jobs:
   build_docker:
@@ -47,18 +47,18 @@ jobs:
     - name: Push image
       uses: docker/build-push-action@v3
       with:
-        builder: ${{ steps.buildx.outputs.name }}
         context: .
         file: ${{ env.DOCKER_FILE_DIR }}/Dockerfile
+        builder: ${{ steps.buildx.outputs.name }}
         push: true
         tags: ${{ env.REGISTRY }}/${{ github.actor }}/homepage/api:latest
         cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        cache-to: type=local,dest=${{ env.PATH_TO_IMAGE_CACHE_NEW}}
 
     - name: Move cache 
       run: |
         rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
-        mv /tmp/.buildx-cache-new ${{ env.PATH_TO_IMAGE_CACHE }}
+        mv ${{ env.PATH_TO_IMAGE_CACHE_NEW}} ${{ env.PATH_TO_IMAGE_CACHE }}
 
   build_rust:
 
