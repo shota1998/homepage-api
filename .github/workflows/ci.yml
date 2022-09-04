@@ -1,4 +1,4 @@
-name: Hompage-api
+name: ci
 
 on:
   push:

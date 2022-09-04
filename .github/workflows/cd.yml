@@ -1,4 +1,4 @@
-name: prod
+name: cd
 
 on:
   pull_request:
@@ -201,24 +201,8 @@ jobs:
             docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.BIN_FILE_NAME }}"
-            curl -i localhost:28000 -o /dev/null -w '%{http_code}\n' -s
+            curl -i localhost:28000/api/v1/article/get_all -o /dev/null -w '%{http_code}\n' -s
           "
 
     - name: Health check
-      run: curl -i ${{ secrets.REMOTE_IP }}:28000 -o /dev/null -w '%{http_code}\n' -s
-
-  delete_artifacts:
-  
-    if: always()
-    needs: send_artifact
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Delete artifacts
-        uses: kolpav/purge-artifacts-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          expire-in: 0
+      run: curl -i ${{ secrets.REMOTE_IP }}:28000//api/v1/article/get_all -o /dev/null -w '%{http_code}\n' -s
