@@ -46,7 +46,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: .deploy/Dockerfile
+        file: deploy/Dockerfile
         builder: ${{ steps.buildx.outputs.name }}
         load: true
         cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
