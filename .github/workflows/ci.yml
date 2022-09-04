@@ -1,17 +1,17 @@
 name: ci
 
 on:
-  push:
-    branches: [ "master" ]
-  # pull_request:
-  #   types: [ synchronize ]
-  #   branches: [ "master", "release" ]
+  pull_request:
+    types: [ synchronize ]
+    branches: [ "master", "release" ]
 
 env:
   CARGO_TERM_COLOR: always
-  DOCKER_COMPOSE_YML: .devcontainer/docker-compose.yml
+  DOCKER_COMPOSE_YML: deploy/docker-compose.yml
   CONTAINER_NAME: homepage-api
   REGISTRY: ghcr.io
+  PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
 
 jobs:
   build:
@@ -38,27 +38,30 @@ jobs:
     - name: Cache Docker layers
       uses: actions/cache@v3
       with:
-        path: /tmp/.buildx-cache
-        key: ${{ github.ref }}-${{ github.sha }}
-        restore-keys: |
-          ${{ github.ref }}
-          refs/head/main
+        path: ${{ env.PATH_TO_IMAGE_CACHE }}
+        key: docker-${{ github.sha }}
+        restore-keys: docker-
 
     - name: Build image
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: .devcontainer/Dockerfile
+        file: .deploy/Dockerfile
         builder: ${{ steps.buildx.outputs.name }}
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
+        cache-to: type=local,dest=${{ env.PATH_TO_IMAGE_CACHE_NEW}}
 
     - name: docker compose up
       run: |
         mkdir -p /tmp/.composer-cache
         docker compose -f ${{ env.DOCKER_COMPOSE_YML }} build
         docker compose -f ${{ env.DOCKER_COMPOSE_YML }} up -d
+
+    - name: Move cache 
+      run: |
+        rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
+        mv ${{ env.PATH_TO_IMAGE_CACHE_NEW}} ${{ env.PATH_TO_IMAGE_CACHE }}
 
     # -----------------------
     # Rust
@@ -68,7 +71,7 @@ jobs:
         touch .env
 
         echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
-        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL_TEST }}  >> .env
+        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
 
         echo ALLOWED_ORIGIN_1   = ${{ secrets.ALLOWED_ORIGIN_1 }}   >> .env
         echo ALLOWED_ORIGIN_2   = ${{ secrets.ALLOWED_ORIGIN_2 }}   >> .env
@@ -95,34 +98,24 @@ jobs:
       run: python ./git-restore-mtime.py
 
     - name: Cache Rust
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-cargo-
 
     - name: Setup Rust
       run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
     - name: Build Rust
-      run: |
-        cargo build --verbose
-        docker logs ${{ env.CONTAINER_NAME }}
+      run: cargo build --verbose
 
     # - name: UT
     #   run: | 
     #     docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
     #     docker logs ${{ env.CONTAINER_NAME }}
 
-    # -----------------------
-    # Teardown
-    # -----------------------
-    - name: Move cache 
-      run: |
-        rm -rf /tmp/.buildx-cache
-        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
         
