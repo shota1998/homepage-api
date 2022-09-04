@@ -120,9 +120,9 @@ jobs:
     - name: Build Rust
       run: cargo build --verbose
 
-    # - name: UT
-    #   run: | 
-    #     docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
-    #     docker logs ${{ env.CONTAINER_NAME }}
+    - name: UT
+      run: | 
+        docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
+        docker logs ${{ env.CONTAINER_NAME }}
 
         
