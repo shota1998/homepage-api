@@ -39,10 +39,8 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ env.PATH_TO_IMAGE_CACHE }}
-        key: ${{ github.ref }}-${{ github.sha }}
-        restore-keys: |
-          ${{ github.ref }}
-          refs/head/main
+        key: docker-${{ github.sha }}
+        restore-keys: docker-
 
     - name: Push image
       uses: docker/build-push-action@v3
@@ -83,7 +81,8 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-cargo-
 
     - name: Setup Rust
       run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
