@@ -206,3 +206,15 @@ jobs:
 
     - name: Health check
       run: curl -i ${{ secrets.REMOTE_IP }}:28000 -o /dev/null -w '%{http_code}\n' -s
+
+  delete_artifacts:
+  
+    if: always()
+    needs: send_artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: kolpav/purge-artifacts-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          expire-in: 0
