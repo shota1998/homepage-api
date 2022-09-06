@@ -127,7 +127,7 @@ jobs:
 
     - name: UT
       run: |
-        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
+        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "cargo test --bin api_bin --verbose"
         # docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
 
         
