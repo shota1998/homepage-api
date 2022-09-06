@@ -8,7 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   CARGO_TERM_COLOR: always
-  DOCKER_COMPOSE_YML: deploy/docker-compose.yml
+  DOCKER_COMPOSE_YML: ./docker-compose.yml
   CONTAINER_NAME: homepage-api
   PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
   PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
@@ -31,6 +31,11 @@ jobs:
     # -----------------------
     # Docker
     # -----------------------
+    - name: Move Dockerfile and docker-compose.yml
+      run: | 
+        mv ./deploy/Dockerfile .
+        mv ./deploy/docker-compose.yml .
+    
     - name: Login to GitHub Container registry
       uses: docker/login-action@v2
       with:
@@ -53,7 +58,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: deploy/Dockerfile
+        file: ./Dockerfile
         builder: ${{ steps.buildx.outputs.name }}
         load: true
         cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
@@ -124,8 +129,8 @@ jobs:
       uses: mxschmitt/action-tmate@v3
       
     - name: UT
-      run: | 
-        docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
-        docker logs ${{ env.CONTAINER_NAME }}
+      run: |
+        docker exec -it ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
+        # docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
 
         
