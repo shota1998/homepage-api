@@ -120,17 +120,17 @@ jobs:
         restore-keys: ${{ runner.os }}-cargo-
 
     - name: Setup Rust
-      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      run: |
+        rustup update ${{ matrix.toolchain }} && \
+        rustup default ${{ matrix.toolchain }}
 
     - name: Build Rust
-      run: cargo build --verbose
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+      run: |
+        cargo test --no-run --message-format=json-diagnostic-short | \
+        grep "/target/debug/deps/api_bin-" | \
+        python3 -c "import sys, json; print(json.load(sys.stdin)['executable'])" > \
+        path_to_test_binary.txt
     
     - name: UT
       run: |
-        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "cargo test --bin api_bin --verbose"
-        # docker-compose exec -T ${{ env.CONTAINER_NAME }} bash -c "cargo test --verbose"
-
-        
+        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "bash path_to_test_binary.txt"
