@@ -1,4 +1,4 @@
-name: delete-artifacts
+name: delete artifacts
 
 on:
   workflow_run:
