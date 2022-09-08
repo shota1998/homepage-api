@@ -126,11 +126,11 @@ jobs:
     - name: docker compose up
       run: |
         mkdir -p /tmp/.composer-cache
-        docker compose \
+        docker-compose \
           -f ${{ env.COMPOSE_YML }} \
           -v $(cat ${{ env.PATH_TO_TEST_BINARY_TXT }}):${{ env.COMPOSE_WORKING_DIR }}/${{ env.TEST_BINARY_NAME }} \
           build
-        docker compose -f ${{ env.COMPOSE_YML }} up -d
+        docker-compose -f ${{ env.COMPOSE_YML }} up -d
 
     - name: Move cache 
       run: |
