@@ -141,9 +141,9 @@ jobs:
     # UT
     # -----------------------
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
-    - name: UT
-      run: |
-        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "bash ${{ env.TEST_BINARY_NAME }}"
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+    #  
+    # - name: UT
+    #   run: |
+    #     docker exec -t ${{ env.CONTAINER_NAME }} bash -c "bash ${{ env.TEST_BINARY_NAME }}"
