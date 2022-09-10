@@ -88,8 +88,8 @@ jobs:
           test_bin_path = json.load(sys.stdin)['executable']; \
           test_bin_name = (os.path.basename(test_bin_path))"; \
           print test_bin_name; \
-        " > \
-        ${{ env.TEST_BINARY_NAME_TXT }}
+        " \
+        > ${{ env.TEST_BINARY_NAME_TXT }}
 
     # -----------------------
     # Docker
