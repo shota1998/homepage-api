@@ -139,10 +139,8 @@ jobs:
     # -----------------------
     # UT
     # -----------------------
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
     - name: UT
       run: |
-        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "target/debug/deps/$(cat ${{ env.TEST_BINARY_NAME_TXT }})"
+        docker exec \ 
+          -t ${{ env.CONTAINER_NAME }} \
+          bash -c "target/debug/deps/$(cat ${{ env.TEST_BINARY_NAME_TXT }})"
