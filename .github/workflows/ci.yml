@@ -83,13 +83,8 @@ jobs:
       run: |
         cargo test --no-run --message-format=json-diagnostic-short | \
         grep "/target/debug/deps/api_bin-" | \
-        python3 -c " \
-          import os, sys, json; \
-          test_bin_path = json.load(sys.stdin)['executable']; \
-          test_bin_name = (os.path.basename(test_bin_path)); \
-          print test_bin_name; \
-        " \
-        > ${{ env.TEST_BINARY_NAME_TXT }}
+        python3 .github/print_test_bin_name.py > \
+        ${{ env.TEST_BINARY_NAME_TXT }}
 
     # -----------------------
     # Docker
