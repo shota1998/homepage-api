@@ -13,8 +13,7 @@ env:
   CONTAINER_NAME: homepage-api
   PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
   PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
-  PATH_TO_TEST_BINARY_TXT: path_to_test_binary.txt
-  TEST_BINARY_NAME: test_bin
+  TEST_BINARY_NAME_TXT: test_bin_name.txt
 
 jobs:
   build:
@@ -84,8 +83,13 @@ jobs:
       run: |
         cargo test --no-run --message-format=json-diagnostic-short | \
         grep "/target/debug/deps/api_bin-" | \
-        python3 -c "import sys, json; print(json.load(sys.stdin)['executable'])" > \
-        ${{ env.PATH_TO_TEST_BINARY_TXT }}
+        python3 -c " \
+          import os, sys, json; \
+          test_bin_path = json.load(sys.stdin)['executable']; \
+          test_bin_name = (os.path.basename(test_bin_path))"; \
+          print test_bin_name; \
+        " > \
+        ${{ env.TEST_BINARY_NAME_TXT }}
 
     # -----------------------
     # Docker
@@ -128,7 +132,7 @@ jobs:
         mkdir -p /tmp/.composer-cache
         docker-compose \
           -f ${{ env.COMPOSE_YML }} \
-          -v $(cat ${{ env.PATH_TO_TEST_BINARY_TXT }}):${{ env.COMPOSE_WORKING_DIR }}/${{ env.TEST_BINARY_NAME }} \
+          -v $(cat ${{ env.TEST_BINARY_NAME_TXT }}):${{ env.COMPOSE_WORKING_DIR }}/${{ env.TEST_BINARY_NAME_TXT }} \
           build
         docker-compose -f ${{ env.COMPOSE_YML }} up -d
 
@@ -141,9 +145,9 @@ jobs:
     # UT
     # -----------------------
 
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
-    #  
-    # - name: UT
-    #   run: |
-    #     docker exec -t ${{ env.CONTAINER_NAME }} bash -c "bash ${{ env.TEST_BINARY_NAME }}"
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      
+    - name: UT
+      run: |
+        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "target/debug/deps/$(cat ${{ env.TEST_BINARY_NAME_TXT }})"
