@@ -4,4 +4,4 @@
 *.pem
 .vscode/
 /.github/.secrets
-/src/file/storage
+/src/file/storage/*
