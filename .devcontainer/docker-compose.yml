@@ -1,14 +1,14 @@
 version: '3'
 
 services:
-
   homepage-api:
     container_name: 'homepage-api'
-    image: "ghcr.io/shota1998/homepage/api:latest"
-    restart: always
+    build: .
     tty: true
     volumes:
-      - .:/workspace
+      - ..:/workspace
+      - .bashrc:/root/.bashrc
+      - $HOME/.ssh:/root/.ssh
     working_dir: /workspace
     cap_add:
       - SYS_PTRACE
@@ -19,10 +19,14 @@ services:
     depends_on:
       homepage-db-main:
         condition: service_healthy
+      homepage-db-test:
+        condition: service_healthy
     command: bash -c "
                 diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+             && diesel setup --database-url postgres://test:test@homepage-db-test/homepage 
              && tail -f /dev/null "
-
+           
+      
   homepage-db-main:
     container_name: 'homepage-db-main'
     image: 'postgres:11.2'
@@ -37,5 +41,22 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s
       timeout: 3s
+      retries: 3
+      start_period: 1s
+
+  homepage-db-test:
+    container_name: 'homepage-db-test'
+    image: 'postgres:11.2'
+    ports:
+      - '25432:5432'
+    user: ${POSTGRES_USER}
+    environment:
+      - 'POSTGRES_USER=test'
+      - 'POSTGRES_DB=homepage'
+      - 'POSTGRES_PASSWORD=test'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 1s
+      timeout: 1s
       retries: 3
       start_period: 1s
