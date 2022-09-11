@@ -130,6 +130,7 @@ jobs:
         cp ${{ env.DOCKER_FILE_DIR }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
         cp -r migrations ${{ steps.test.outputs.download-path }}
         cp Cargo.toml    ${{ steps.test.outputs.download-path }}
+        cp nginx.conf    ${{ steps.test.outputs.download-path }}
         cp .env          ${{ steps.test.outputs.download-path }}
         cd               ${{ steps.test.outputs.download-path }}
         tar -cvf ~/${{ env.TAR_FILE_NAME }} .
