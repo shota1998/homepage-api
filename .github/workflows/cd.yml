@@ -185,8 +185,12 @@ jobs:
             docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.BIN_FILE_NAME }}"
-            curl -i localhost:28000/api/v1/article/get_all -o /dev/null -w '%{http_code}\n' -s
           "
 
     - name: Health check
-      run: curl -i ${{ secrets.REMOTE_IP }}:28000//api/v1/article/get_all -o /dev/null -w '%{http_code}\n' -s
+      run: |
+        curl                                                        \
+          -i ${{ secrets.REMOTE_IP }}:28000//api/v1/article/get_all \
+          -o /dev/null -w '%{http_code}\n'                          \
+          -s                                                        \
+        | python3 ./check_response_code.py
