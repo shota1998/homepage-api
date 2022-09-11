@@ -154,6 +154,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
     - name: Generate ssh private key
       uses: shimataro/ssh-key-action@v2
       with: 
@@ -186,7 +189,6 @@ jobs:
             docker-compose -f docker-compose.yml up -d
             docker-compose exec -d homepage-api bash -c "./${{ env.BIN_FILE_NAME }}"
           "
-
     - name: Health check
       run: |
         curl                                                        \
