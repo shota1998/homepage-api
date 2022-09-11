@@ -45,7 +45,7 @@ jobs:
 
         echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
 
-        echo AWS_REGION         = ${{ secrets.AWS_REGIONE }}        >> .env
+        echo AWS_REGION         = ${{ secrets.AWS_REGION }}         >> .env
 
         echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
         echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
