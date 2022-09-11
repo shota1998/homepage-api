@@ -3,7 +3,10 @@ name: ci
 on:
   pull_request:
     types: [ synchronize ]
-    branches: [ "master", "release" ]
+    branches: [ "master" ]
+  # pull_request:
+  #   types: [ synchronize ]
+  #   branches: [ "master", "release" ]
 
 env:
   REGISTRY: ghcr.io
@@ -34,29 +37,7 @@ jobs:
     # Rust
     # -----------------------
     - name: Create an env file
-      run: |
-        touch .env
-
-        echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
-        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
-
-        echo ALLOWED_ORIGIN_1   = ${{ secrets.ALLOWED_ORIGIN_1 }}   >> .env
-        echo ALLOWED_ORIGIN_2   = ${{ secrets.ALLOWED_ORIGIN_2 }}   >> .env
-
-        echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
-
-        echo AWS_REGION         = ${{ secrets.AWS_REGIONE }}        >> .env
-
-        echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
-        echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
-        echo AWS_BUCKET         = ${{ secrets.AWS_BUCKET }}         >> .env
-
-        echo AWS_KEY_ID         = ${{ secrets.AWS_KEY_ID }}         >> .env
-        echo AWS_KEY_SECRET     = ${{ secrets.AWS_KEY_SECRET }}     >> .env
-
-        echo FILE_STORAGE_LOCATION = ${{ secrets.FILE_STORAGE_LOCATION }} >> .env
-
-        cat .env
+      run: .github/create_env_file.sh
 
     - name: Install Python
       uses: actions/setup-python@v2
@@ -139,9 +120,6 @@ jobs:
     # -----------------------
     # UT
     # -----------------------
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-    
     - name: UT
       run: |
         docker exec -t ${{ env.CONTAINER_NAME }} bash -c "target/debug/deps/$(cat ${{ env.TEST_BINARY_NAME_TXT }})"
