@@ -71,15 +71,4 @@ mod others_create_file {
 
       assert_eq!(ecpected_path, result.unwrap());
     }
-
-    #[test]
-    fn test_create_file_path() {
-      
-      // todo : occur error when null is passed.
-      let path = create_file_path("hoge");
-
-      // todd: replace this str to env variable.
-      assert_eq!("/home/shota/project/homepage/homepage-api-server-for-editer/src/file/storage/hoge", 
-                 path.as_str());
-    }
 }
