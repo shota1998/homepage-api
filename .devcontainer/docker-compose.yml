@@ -30,13 +30,13 @@ services:
   homepage-db-main:
     container_name: 'homepage-db-main'
     image: 'postgres:11.2'
+    ports:
+      - '15432:5432'
+    user: ${POSTGRES_USER}
     environment:
       - 'POSTGRES_USER=main'
       - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=main'
-    ports:
-      - '15432:5432'
-    user: ${POSTGRES_USER}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s
@@ -47,13 +47,13 @@ services:
   homepage-db-test:
     container_name: 'homepage-db-test'
     image: 'postgres:11.2'
+    ports:
+      - '25432:5432'
+    user: ${POSTGRES_USER}
     environment:
       - 'POSTGRES_USER=test'
       - 'POSTGRES_DB=homepage'
       - 'POSTGRES_PASSWORD=test'
-    ports:
-      - '25432:5432'
-    user: ${POSTGRES_USER}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 1s

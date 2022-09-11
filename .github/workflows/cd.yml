@@ -1,19 +1,24 @@
-name: prod
+name: cd
 
 on:
   pull_request:
     types: [ synchronize ]
     branches: [ "master", "release" ]
+  # pull_request:
+  #   branches:
+  #     - main
+  #   types:
+  #     - closed
 
 env:
-  CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
-  PATH_TO_ARTIFACT2: deploy
-  PATH_TO_ARTIFACT: target/debug
-  FILE_NAME: api_bin
+  CARGO_TERM_COLOR: always
+  DOCKER_FILE_DIR: deploy
+  BIN_FIL_DIR: target/release
+  BIN_FILE_NAME: api_bin
   TAR_FILE_NAME: artifact.tar
-
-  PATH_TO_IMAGE_CACHE: /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
 
 jobs:
   build_docker:
@@ -39,26 +44,24 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ${{ env.PATH_TO_IMAGE_CACHE }}
-        key: ${{ github.ref }}-${{ github.sha }}
-        restore-keys: |
-          ${{ github.ref }}
-          refs/head/main
+        key: docker-${{ github.sha }}
+        restore-keys: docker-
 
     - name: Push image
       uses: docker/build-push-action@v3
       with:
-        builder: ${{ steps.buildx.outputs.name }}
         context: .
-        file: ${{ env.PATH_TO_ARTIFACT2 }}/Dockerfile
+        file: ${{ env.DOCKER_FILE_DIR }}/Dockerfile
+        builder: ${{ steps.buildx.outputs.name }}
         push: true
         tags: ${{ env.REGISTRY }}/${{ github.actor }}/homepage/api:latest
         cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        cache-to: type=local,dest=${{ env.PATH_TO_IMAGE_CACHE_NEW}}
 
     - name: Move cache 
       run: |
         rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
-        mv /tmp/.buildx-cache-new ${{ env.PATH_TO_IMAGE_CACHE }}
+        mv ${{ env.PATH_TO_IMAGE_CACHE_NEW}} ${{ env.PATH_TO_IMAGE_CACHE }}
 
   build_rust:
 
@@ -77,25 +80,28 @@ jobs:
       run: python ./git-restore-mtime.py
 
     - name: Cache Rust
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-cargo-
 
     - name: Setup Rust
-      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      run: |
+        rustup update ${{ matrix.toolchain }} && \
+        rustup default ${{ matrix.toolchain }}
 
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --release --verbose
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: my-artifact
-        path: ${{ env.PATH_TO_ARTIFACT }}/${{ env.FILE_NAME}}
+        path: ${{ env.BIN_FIL_DIR }}/${{ env.BIN_FILE_NAME}}
 
   send_artifact:
     
@@ -107,43 +113,21 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Create an env file
-      run: |
-        touch .env
-
-        echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
-        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL_TEST }}  >> .env
-
-        echo ALLOWED_ORIGIN_1   = ${{ secrets.ALLOWED_ORIGIN_1 }}   >> .env
-        echo ALLOWED_ORIGIN_2   = ${{ secrets.ALLOWED_ORIGIN_2 }}   >> .env
-
-        echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
-
-        echo AWS_REGION         = ${{ secrets.AWS_REGIONE }}        >> .env
-
-        echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
-        echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
-        echo AWS_BUCKET         = ${{ secrets.AWS_BUCKET }}         >> .env
-
-        echo AWS_KEY_ID         = ${{ secrets.AWS_KEY_ID }}         >> .env
-        echo AWS_KEY_SECRET     = ${{ secrets.AWS_KEY_SECRET }}     >> .env
-
-        echo FILE_STORAGE_LOCATION = ${{ secrets.FILE_STORAGE_LOCATION }} >> .env
-
-        cat .env
+      run: .github/create_env_file.sh
 
     - name: Download artifact
       uses: actions/download-artifact@v3
       id: test
       with:
         name: my-artifact
-        path: ${{ env.PATH_TO_ARTIFACT }}
+        path: ${{ env.BIN_FIL_DIR }}
 
     - name: Show artifact
       run: ls -la  ${{ steps.test.outputs.download-path }}
 
     - name: Compress artifact
       run: |
-        cp ${{ env.PATH_TO_ARTIFACT2 }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
+        cp ${{ env.DOCKER_FILE_DIR }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
         cp -r migrations ${{ steps.test.outputs.download-path }}
         cp Cargo.toml    ${{ steps.test.outputs.download-path }}
         cp .env          ${{ steps.test.outputs.download-path }}
@@ -170,6 +154,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
     - name: Generate ssh private key
       uses: shimataro/ssh-key-action@v2
       with: 
@@ -179,33 +166,33 @@ jobs:
 
     - name: Decompress artifact
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
-            tar -xvf ${{ env.TAR_FILE_NAME }}
-            chmod 755 ./${{ env.FILE_NAME }}
+            tar -xvf ${{ env.TAR_FILE_NAME }} && rm -f ${{ env.TAR_FILE_NAME }}
+            chmod 755 ./${{ env.BIN_FILE_NAME }}
             ls -la
           "
 
-    # TODO
-    # Preparation for ssl
-
     - name: Run app
       run: |
-        ssh                                                  \
+        ssh                                                      \
           -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
-          -p 22                                              \
-          -o StrictHostKeyChecking=no                        \
-          -o ConnectTimeout=5                                \
+          -p 22                                                  \
+          -o StrictHostKeyChecking=no                            \
+          -o ConnectTimeout=5                                    \
           "
             docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
             docker-compose -f docker-compose.yml up -d
-            docker-compose exec -d homepage-api bash -c "./${{ env.FILE_NAME }}"
-            curl -i localhost:28000 -o /dev/null -w '%{http_code}\n' -s
+            docker-compose exec -d homepage-api bash -c "./${{ env.BIN_FILE_NAME }}"
           "
-
     - name: Health check
-      run: curl -i ${{ secrets.REMOTE_IP }} -o /dev/null -w '%{http_code}\n' -s
+      run: |
+        curl                                                        \
+          -i ${{ secrets.REMOTE_IP }}:28000/api/v1/article/get_all \
+          -o /dev/null -w '%{http_code}\n'                          \
+          -s                                                        \
+        | python3 .github/check_response_code.py

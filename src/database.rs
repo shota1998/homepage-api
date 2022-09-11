@@ -3,12 +3,10 @@ use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
 
-/// Initialize database connection.
-/// # Returns
-/// * (PgConnection)
+
 pub fn establish_connection() -> PgConnection {
   dotenv().ok();
-
+  
   let database_url = 
       if cfg!(test) {
         env::var("DATABASE_URL_TEST").expect("DATABASE_URL_TEST must be set.")
