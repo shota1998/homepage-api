@@ -193,4 +193,4 @@ jobs:
           -i ${{ secrets.REMOTE_IP }}:28000//api/v1/article/get_all \
           -o /dev/null -w '%{http_code}\n'                          \
           -s                                                        \
-        | python3 ./check_response_code.py
+        | python3 .github/check_response_code.py
