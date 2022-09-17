@@ -19,6 +19,7 @@ env:
   TAR_FILE_NAME: artifact.tar
   PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
   PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
+  REMOTE_DOMAIN: api.s2cache.com
 
 jobs:
   build_docker:
@@ -169,7 +170,7 @@ jobs:
         scp -o StrictHostKeyChecking=no \
             -P 22                       \
             ~/${{ env.TAR_FILE_NAME }}  \
-            ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }}:/home/${{ secrets.REMOTE_USER }}
+            ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }}:/home/${{ secrets.REMOTE_USER }}
 
   run_app:
 
@@ -190,7 +191,7 @@ jobs:
     - name: Decompress artifact
       run: |
         ssh                                                      \
-          -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
           -p 22                                                  \
           -o StrictHostKeyChecking=no                            \
           -o ConnectTimeout=5                                    \
@@ -203,7 +204,7 @@ jobs:
     - name: Run app
       run: |
         ssh                                                      \
-          -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
           -p 22                                                  \
           -o StrictHostKeyChecking=no                            \
           -o ConnectTimeout=5                                    \
@@ -215,7 +216,7 @@ jobs:
     - name: Health check
       run: |
         curl                                                        \
-          -i ${{ secrets.REMOTE_IP }}:28000/api/v1/article/get_all \
+          -i https://${{ env.REMOTE_DOMAIN }}/api/v1/article/get_all \
           -o /dev/null -w '%{http_code}\n'                          \
           -s                                                        \
         | python3 .github/check_response_code.py
