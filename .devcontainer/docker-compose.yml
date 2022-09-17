@@ -17,18 +17,18 @@ services:
     ports:
       - '28000:8001'
     depends_on:
-      homepage-db-main:
+      homepage-db:
         condition: service_healthy
       homepage-db-test:
         condition: service_healthy
     command: bash -c "
-                diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+                diesel setup --database-url postgres://main:main@homepage-db/homepage 
              && diesel setup --database-url postgres://test:test@homepage-db-test/homepage 
              && tail -f /dev/null "
            
       
-  homepage-db-main:
-    container_name: 'homepage-db-main'
+  homepage-db:
+    container_name: 'homepage-db'
     image: 'postgres:11.2'
     ports:
       - '15432:5432'

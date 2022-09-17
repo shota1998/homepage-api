@@ -15,14 +15,14 @@ services:
     security_opt:
       - seccomp:unconfined
     depends_on:
-      homepage-db-main:
+      homepage-db:
         condition: service_healthy
     command: bash -c "
-                diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+                diesel setup --database-url postgres://main:main@homepage-db/homepage 
              && tail -f /dev/null "
 
-  homepage-db-main:
-    container_name: 'homepage-db-main'
+  homepage-db:
+    container_name: 'homepage-db'
     image: 'postgres:11.2'
     user: ${POSTGRES_USER}
     environment:
