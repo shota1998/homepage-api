@@ -120,7 +120,8 @@ jobs:
         echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
         echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
 
-        echo ALLOWED_ORIGIN     = ${{ secrets.ALLOWED_ORIGIN }}     >> .env
+        echo ALLOWED_ORIGIN_ADMIN = ${{ secrets.ALLOWED_ORIGIN_ADMIN }} >> .env
+        echo ALLOWED_ORIGIN_USER  = ${{ secrets.ALLOWED_ORIGIN_USER }}  >> .env
 
         echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
 
