@@ -31,10 +31,10 @@ services:
       - 'POSTGRES_PASSWORD=main'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 1s
+      interval: 3s
       timeout: 3s
       retries: 3
-      start_period: 1s
+      start_period: 3s
 
   homepage-proxy:
     container_name: 'homepage-proxy'
