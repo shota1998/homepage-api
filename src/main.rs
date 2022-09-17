@@ -35,9 +35,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         let cors = Cors::default()
-                    .allowed_origin(&env::var("ALLOWED_ORIGIN_1").expect("ALLOWED_ORIGIN_1 must be set."))
-                    .allowed_origin(&env::var("ALLOWED_ORIGIN_2").expect("ALLOWED_ORIGIN_2 must be set."))
-                    .allowed_origin(&env::var("ALLOWED_ORIGIN_3").expect("ALLOWED_ORIGIN_3 must be set."))
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN").expect("ALLOWED_ORIGIN must be set."))
                     .allowed_methods(vec!["GET", "POST", "PUT"])
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
