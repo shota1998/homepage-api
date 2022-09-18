@@ -3,12 +3,7 @@ name: cd
 on:
   pull_request:
     types: [ synchronize ]
-    branches: [ "master", "release" ]
-  # pull_request:
-  #   branches:
-  #     - main
-  #   types:
-  #     - closed
+    branches: [ "master"]
 
 env:
   REGISTRY: ghcr.io
@@ -19,6 +14,7 @@ env:
   TAR_FILE_NAME: artifact.tar
   PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
   PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
+  REMOTE_DOMAIN: api.s2cache.com
 
 jobs:
   build_docker:
@@ -113,7 +109,29 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Create an env file
-      run: .github/create_env_file.sh
+      run: |
+        touch .env
+
+        echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
+        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
+
+        echo ALLOWED_ORIGIN_ADMIN = ${{ secrets.ALLOWED_ORIGIN_ADMIN }} >> .env
+        echo ALLOWED_ORIGIN_USER  = ${{ secrets.ALLOWED_ORIGIN_USER }}  >> .env
+
+        echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
+
+        echo AWS_REGION         = ${{ secrets.AWS_REGION }}         >> .env
+
+        echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
+        echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
+        echo AWS_BUCKET         = ${{ secrets.AWS_BUCKET }}         >> .env
+
+        echo AWS_KEY_ID         = ${{ secrets.AWS_KEY_ID }}         >> .env
+        echo AWS_KEY_SECRET     = ${{ secrets.AWS_KEY_SECRET }}     >> .env
+
+        echo FILE_STORAGE_LOCATION = ${{ secrets.FILE_STORAGE_LOCATION }} >> .env
+
+        cat .env
 
     - name: Download artifact
       uses: actions/download-artifact@v3
@@ -130,6 +148,7 @@ jobs:
         cp ${{ env.DOCKER_FILE_DIR }}/docker-compose.yml ${{ steps.test.outputs.download-path }}
         cp -r migrations ${{ steps.test.outputs.download-path }}
         cp Cargo.toml    ${{ steps.test.outputs.download-path }}
+        cp nginx.conf    ${{ steps.test.outputs.download-path }}
         cp .env          ${{ steps.test.outputs.download-path }}
         cd               ${{ steps.test.outputs.download-path }}
         tar -cvf ~/${{ env.TAR_FILE_NAME }} .
@@ -146,7 +165,7 @@ jobs:
         scp -o StrictHostKeyChecking=no \
             -P 22                       \
             ~/${{ env.TAR_FILE_NAME }}  \
-            ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }}:/home/${{ secrets.REMOTE_USER }}
+            ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }}:/home/${{ secrets.REMOTE_USER }}
 
   run_app:
 
@@ -167,7 +186,7 @@ jobs:
     - name: Decompress artifact
       run: |
         ssh                                                      \
-          -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
           -p 22                                                  \
           -o StrictHostKeyChecking=no                            \
           -o ConnectTimeout=5                                    \
@@ -180,7 +199,7 @@ jobs:
     - name: Run app
       run: |
         ssh                                                      \
-          -t ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_IP }} \
+          -t ${{ secrets.REMOTE_USER }}@${{ env.REMOTE_DOMAIN }} \
           -p 22                                                  \
           -o StrictHostKeyChecking=no                            \
           -o ConnectTimeout=5                                    \
@@ -192,7 +211,7 @@ jobs:
     - name: Health check
       run: |
         curl                                                        \
-          -i ${{ secrets.REMOTE_IP }}:28000/api/v1/article/get_all \
+          -i https://${{ env.REMOTE_DOMAIN }}/api/v1/article/get_all \
           -o /dev/null -w '%{http_code}\n'                          \
           -s                                                        \
         | python3 .github/check_response_code.py
