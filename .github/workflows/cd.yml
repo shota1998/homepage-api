@@ -3,7 +3,7 @@ name: cd
 on:
   pull_request:
     types: [ synchronize ]
-    branches: [ "master"]
+    branches: [ "main"]
 
 env:
   REGISTRY: ghcr.io
