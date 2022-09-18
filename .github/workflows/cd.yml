@@ -3,12 +3,7 @@ name: cd
 on:
   pull_request:
     types: [ synchronize ]
-    branches: [ "master", "release" ]
-  # pull_request:
-  #   branches:
-  #     - main
-  #   types:
-  #     - closed
+    branches: [ "master"]
 
 env:
   REGISTRY: ghcr.io
