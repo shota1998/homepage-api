@@ -14,20 +14,16 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
-    ports:
-      - '28000:8001'
     depends_on:
-      homepage-db-main:
+      homepage-db:
         condition: service_healthy
     command: bash -c "
-                diesel setup --database-url postgres://main:main@homepage-db-main/homepage 
+                diesel setup --database-url postgres://main:main@homepage-db/homepage 
              && tail -f /dev/null "
 
-  homepage-db-main:
-    container_name: 'homepage-db-main'
+  homepage-db:
+    container_name: 'homepage-db'
     image: 'postgres:11.2'
-    ports:
-      - '15432:5432'
     user: ${POSTGRES_USER}
     environment:
       - 'POSTGRES_USER=main'
@@ -35,7 +31,20 @@ services:
       - 'POSTGRES_PASSWORD=main'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 1s
+      interval: 3s
       timeout: 3s
       retries: 3
-      start_period: 1s
+      start_period: 3s
+
+  homepage-proxy:
+    container_name: 'homepage-proxy'
+    image: 'nginx:latest'
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - 'homepage-api'
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+      - '/etc/letsencrypt/live/api.s2cache.com/fullchain.pem:/etc/nginx/conf.d/ssl/cert.pem'
+      - '/etc/letsencrypt/live/api.s2cache.com/privkey.pem:/etc/nginx/conf.d/ssl/key.pem'
