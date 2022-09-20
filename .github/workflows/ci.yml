@@ -1,0 +1,144 @@
+name: ci
+
+on:
+  pull_request:
+    types: [ synchronize ]
+    branches: [ "release" ]
+
+env:
+  REGISTRY: ghcr.io
+  CARGO_TERM_COLOR: always
+  COMPOSE_YML: ./docker-compose.yml
+  COMPOSE_WORKING_DIR: /workspace
+  CONTAINER_NAME: homepage-api
+  PATH_TO_IMAGE_CACHE:     /tmp/.buildx-cache
+  PATH_TO_IMAGE_CACHE_NEW: /tmp/.buildx-cache-new
+  TEST_BINARY_NAME_TXT: test_bin_name.txt
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # -----------------------
+    # Rust
+    # -----------------------
+    - name: Create an env file
+      run: |
+        touch .env
+
+        echo DATABASE_URL       = ${{ secrets.DATABASE_URL }}       >> .env
+        echo DATABASE_URL_TEST  = ${{ secrets.DATABASE_URL }}       >> .env
+
+        echo ALLOWED_ORIGIN_ADMIN = ${{ secrets.ALLOWED_ORIGIN_ADMIN }} >> .env
+        echo ALLOWED_ORIGIN_USER  = ${{ secrets.ALLOWED_ORIGIN_USER }}  >> .env
+
+        echo LOCAL_FILE_STORAGE = ${{ secrets.LOCAL_FILE_STORAGE }} >> .env
+
+        echo AWS_REGION         = ${{ secrets.AWS_REGION }}         >> .env
+
+        echo AWS_BUCKET_TEST    = ${{ secrets.AWS_BUCKET_TEST }}    >> .env
+        echo AWS_BUCKET_DEV     = ${{ secrets.AWS_BUCKET_DEV }}     >> .env
+        echo AWS_BUCKET         = ${{ secrets.AWS_BUCKET }}         >> .env
+
+        echo AWS_KEY_ID         = ${{ secrets.AWS_KEY_ID }}         >> .env
+        echo AWS_KEY_SECRET     = ${{ secrets.AWS_KEY_SECRET }}     >> .env
+
+        echo FILE_STORAGE_LOCATION = ${{ secrets.FILE_STORAGE_LOCATION }} >> .env
+
+        cat .env
+
+    - name: Install Python
+      uses: actions/setup-python@v2
+
+    - name: Restore mtime
+      run: python ./git-restore-mtime.py
+
+    - name: Cache Rust
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ github.sha }}
+        restore-keys: ${{ runner.os }}-cargo-
+
+    - name: Setup Rust
+      run: |
+        rustup update ${{ matrix.toolchain }} && \
+        rustup default ${{ matrix.toolchain }}
+
+    - name: Build Rust
+      run: |
+        cargo test --no-run --message-format=json-diagnostic-short | \
+        grep "/target/debug/deps/api_bin-" | \
+        python3 .github/print_test_bin_name.py > \
+        ${{ env.TEST_BINARY_NAME_TXT }}
+
+    # -----------------------
+    # Docker
+    # -----------------------
+    - name: Move Dockerfile and docker-compose.yml
+      run: | 
+        mv ./deploy/Dockerfile .
+        mv ./deploy/docker-compose.yml .
+    
+    - name: Login to GitHub Container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PATH_TO_IMAGE_CACHE }}
+        key: docker-${{ github.sha }}
+        restore-keys: docker-
+
+    - name: Build image
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ./Dockerfile
+        builder: ${{ steps.buildx.outputs.name }}
+        load: true
+        cache-from: type=local,src=${{ env.PATH_TO_IMAGE_CACHE }}
+        cache-to: type=local,dest=${{ env.PATH_TO_IMAGE_CACHE_NEW}}
+
+    - name: docker compose up
+      run: |
+        mkdir -p /tmp/.composer-cache
+        docker-compose \
+          -f ${{ env.COMPOSE_YML }} \
+          -v $(cat ${{ env.TEST_BINARY_NAME_TXT }}):${{ env.COMPOSE_WORKING_DIR }}/${{ env.TEST_BINARY_NAME_TXT }} \
+          build
+        docker-compose -f ${{ env.COMPOSE_YML }} up -d
+
+    - name: Move cache 
+      run: |
+        rm -rf ${{ env.PATH_TO_IMAGE_CACHE }}
+        mv ${{ env.PATH_TO_IMAGE_CACHE_NEW}} ${{ env.PATH_TO_IMAGE_CACHE }}
+
+    # -----------------------
+    # UT
+    # -----------------------
+    - name: UT
+      run: |
+        docker exec -t ${{ env.CONTAINER_NAME }} bash -c "target/debug/deps/$(cat ${{ env.TEST_BINARY_NAME_TXT }})"

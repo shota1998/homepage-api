@@ -1,40 +1,91 @@
 #[macro_use] extern crate diesel;
-extern crate dotenv;
 
-use actix_web::{App, HttpServer};
-use actix_service::Service;
+use actix_web::{
+    App,
+    HttpServer,
+    HttpResponse,
+    http
+};
+use actix_web::dev::Service;
+use actix_cors::Cors;
+use futures::future::{ok, Either};
+use std::env;
+use dotenv::dotenv;
 
 mod schema;
 mod database;
-mod processes;
 mod models;
-mod state;
-mod to_do;
 mod json_serialization;
-mod views;
+mod routes;
+mod auth;
+mod sdk;
+mod file;
+mod my_regex;
+mod controller;
+mod logic;
+mod constants;
+mod test_utils;
 
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+    
+    env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     HttpServer::new(|| {
+        let cors = Cors::default()
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN_ADMIN").expect("ALLOWED_ORIGIN must be set."))
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN_USER").expect("ALLOWED_ORIGIN must be set."))
+                    .allowed_methods(vec!["GET", "POST", "PUT"])
+                    .allowed_headers(vec![
+                        http::header::AUTHORIZATION,
+                        http::header::ACCEPT,
+                        http::header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                        http::header::CONTENT_TYPE
+                    ])
+                    .max_age(3600);
+
         let app = App::new()
-            .wrap_fn(|req, srv| {
-                    // srv => routing
-                    // req => service request
-                if *&req.path().contains("/item/") {
-                    match views::token::process_token(&req) {
-                        Ok(_token) => println!("the token is passable"),
-                        Err(message) => println!("token error: {}", message)
-                    }
+            .wrap(cors)
+            .wrap_fn(|request, service| {
+
+                let request_url: String = String::from(*&request.uri().path().clone());
+                let passed: bool;
+
+                
+                if *&request.path().contains("/item/") {
+                    match auth::process_token(&request) {
+                        Ok(_token) => {passed = true;},
+                        Err(_message) => {passed = false;}
+                    };
                 }
-                let fut = srv.call(req);
-                async {
-                    let result = fut.await?;
+                else {
+                    passed = true;
+                }
+
+                
+                let end_result = match passed {
+                    true => {
+                        Either::Left(service.call(request))
+                    },
+                    false => {
+                        let resp = HttpResponse::Unauthorized().finish();
+                        Either::Right(ok(request.into_response(resp).map_into_right_body()))
+                    }
+                };
+
+
+                async move {
+                    let result = end_result.await?;
+                    log::info!("{} -> {}", request_url, &result.status());
                     Ok(result)
                 }
-            }).configure(views::views_factory);
+            })
+            .configure(routes::routes_factory);
         return app
     })
-        .bind("127.0.0.1:8000")?
-        .run()
-        .await
+    .bind("0.0.0.0:8001")?
+    .run()
+    .await
 }
