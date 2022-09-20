@@ -1,0 +1,20 @@
+version: '1.0'
+
+services:
+
+  homepage-api:
+    container_name: 'homepage-api'
+    image: "ghcr.io/shota1998/homepage/api:latest"
+    restart: always
+    ports:
+      - 28000:80001
+
+  homepage-db-main:
+    container_name: 'homepage-db-main'
+    image: 'postgres:11.2'
+    ports:
+      - '15432:5432'
+    environment:
+      - 'POSTGRES_USER=main'
+      - 'POSTGRES_DB=main'
+      - 'POSTGRES_PASSWORD=main'
